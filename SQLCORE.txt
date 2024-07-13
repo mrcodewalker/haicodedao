@@ -1,0 +1,108 @@
+CREATE DATABASE codewalker;
+USE codewalker;
+
+CREATE TABLE students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    student_code VARCHAR(20) NOT NULL DEFAULT '',
+    student_name VARCHAR(100) NOT NULL,
+    student_class VARCHAR(20) DEFAULT ''
+);
+CREATE TABLE subjects (
+    subject_id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_name VARCHAR(100) NOT NULL
+);
+CREATE TABLE scores (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+    subject_id INT,
+    score_text VARCHAR(100) DEFAULT '',
+    score_first FLOAT NOT NULL CHECK(score_first>=0),
+    score_second FLOAT NOT NULL CHECK(score_second>=0),
+    score_final FLOAT NOT NULL CHECK(score_final>=0),
+    score_over_rall FLOAT NOT NULL CHECK(score_over_rall>=0),
+    FOREIGN KEY (student_id) REFERENCES students(student_id),
+    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id)
+);
+ALTER TABLE subjects
+ADD COLUMN subject_credits INT DEFAULT 1;
+CREATE TABLE schedules (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    subject_credits INT NOT NULL,
+    subject_name VARCHAR(255) NOT NULL,
+    day_in_week INT NOT NULL,
+    lesson_number VARCHAR(10),
+    start_day DATE,
+    end_day DATE
+)
+CREATE TABLE ranking(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+	ranking INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+ALTER TABLE ranking
+ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
+ALTER TABLE ranking ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);
+CREATE TABLE semester (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+    subject_id INT,
+    score_text VARCHAR(100) DEFAULT '',
+    score_first FLOAT NOT NULL CHECK(score_first>=0),
+    score_second FLOAT NOT NULL CHECK(score_second>=0),
+    score_final FLOAT NOT NULL CHECK(score_final>=0),
+    score_over_rall FLOAT NOT NULL CHECK(score_over_rall>=0),
+    FOREIGN KEY (student_id) REFERENCES students(student_id),
+    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id)
+);
+CREATE TABLE semester_ranking(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+	ranking INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+ALTER TABLE semester_ranking
+ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
+ALTER TABLE semester_ranking ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);
+CREATE TABLE subjects_semester (
+    subject_id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_name VARCHAR(100) NOT NULL
+);
+ALTER TABLE subjects_semester
+ADD COLUMN subject_credits INT DEFAULT 1;
+CREATE TABLE block_ranking(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+	ranking INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+ALTER TABLE block_ranking
+ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
+ALTER TABLE block_ranking ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);
+CREATE TABLE major_ranking(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+	ranking INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+ALTER TABLE major_ranking
+ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
+ALTER TABLE major_ranking ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);
+CREATE TABLE class_ranking(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+	ranking INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+ALTER TABLE class_ranking
+ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
+ALTER TABLE class_ranking ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);
+CREATE TABLE block_detail_ranking(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+	ranking INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+ALTER TABLE block_detail_ranking
+ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
+ALTER TABLE block_detail_ranking ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);
