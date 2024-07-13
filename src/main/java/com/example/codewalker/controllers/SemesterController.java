@@ -5,7 +5,7 @@ import com.example.codewalker.models.Student;
 import com.example.codewalker.models.Subject;
 import com.example.codewalker.repositories.SubjectRepository;
 import com.example.codewalker.responses.SemesterResponse;
-import com.example.codewalker.kma.services.*;
+import com.example.codewalker.services.*;
 import com.example.codewalker.services.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;

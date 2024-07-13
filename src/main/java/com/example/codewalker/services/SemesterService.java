@@ -1,6 +1,6 @@
 package com.example.codewalker.services;
 
-import com.example.codewalker.kma.models.*;
+import com.example.codewalker.models.*;
 import com.example.codewalker.repositories.SemesterRepository;
 import com.example.codewalker.repositories.StudentRepository;
 import com.example.codewalker.responses.RankingResponse;

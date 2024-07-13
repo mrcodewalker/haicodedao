@@ -4,7 +4,7 @@ import com.example.codewalker.models.Schedule;
 import com.example.codewalker.models.Subject;
 import com.example.codewalker.repositories.ScheduleRepository;
 import com.example.codewalker.repositories.SubjectRepository;
-import com.example.codewalker.kma.responses.*;
+import com.example.codewalker.responses.*;
 import com.example.codewalker.responses.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
