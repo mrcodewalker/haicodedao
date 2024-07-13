@@ -1,6 +1,6 @@
 package com.example.codewalker.repositories;
 
-import com.example.codewalker.kma.models.*;
+import com.example.codewalker.models.*;
 import com.example.codewalker.models.Ranking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

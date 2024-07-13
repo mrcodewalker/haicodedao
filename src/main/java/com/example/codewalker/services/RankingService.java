@@ -1,7 +1,7 @@
 package com.example.codewalker.services;
 
-import com.example.codewalker.kma.models.*;
-import com.example.codewalker.kma.repositories.*;
+import com.example.codewalker.models.*;
+import com.example.codewalker.repositories.*;
 import com.example.codewalker.models.*;
 import com.example.codewalker.repositories.*;
 import com.example.codewalker.responses.RankingResponse;

@@ -1,6 +1,6 @@
 package com.example.codewalker.responses;
 
-import com.example.codewalker.kma.models.*;
+import com.example.codewalker.models.*;
 import com.example.codewalker.models.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
