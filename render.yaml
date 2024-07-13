@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: my-spring-boot-app
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: JAVA_OPTS
+        value: "-Xms512m -Xmx1024m"
+    autoDeploy: true
+    branch: main
