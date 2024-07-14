@@ -23,7 +23,7 @@ public interface BlockRankingRepository extends JpaRepository<BlockRanking,Long>
     List<BlockRanking> findListFilterBlock(@Param("mainCode") String mainCode,
                                            @Param("cyberCode") String cyberCode,
                                            @Param("electronicCode") String electronicCode);
-    @Query("SELECT br FROM BlockRanking br WHERE br.ranking IN (1, 2, 3) AND (br.student.studentCode LIKE %:mainCode% OR br.student.studentCode LIKE %:cyberCode% OR br.student.studentCode LIKE %:electronicCode%)")
+    @Query("SELECT br FROM BlockRanking br WHERE br.ranking IN (2, 1, 3) AND (br.student.studentCode LIKE %:mainCode% OR br.student.studentCode LIKE %:cyberCode% OR br.student.studentCode LIKE %:electronicCode%)")
     List<BlockRanking> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode,
             @Param("cyberCode") String cyberCode,

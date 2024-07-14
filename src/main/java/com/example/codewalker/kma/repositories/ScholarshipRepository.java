@@ -22,7 +22,7 @@ public interface ScholarshipRepository extends JpaRepository<Scholarship,Long> {
 
     @Query("SELECT s FROM Scholarship s WHERE s.student.studentCode LIKE :mainCode%")
     List<Scholarship> findListFilter(@Param("mainCode") String mainCode);
-    @Query("SELECT s FROM Scholarship s WHERE s.ranking IN (1, 2, 3) AND" +
+    @Query("SELECT s FROM Scholarship s WHERE s.ranking IN (2, 1, 3) AND" +
             " s.student.studentCode LIKE %:mainCode%")
     List<Scholarship> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode);

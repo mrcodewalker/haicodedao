@@ -23,7 +23,7 @@ public interface MajorRankingRepository extends JpaRepository<MajorRanking,Long>
     List<MajorRanking> findListFilterBlock(@Param("mainCode") String mainCode,
                                       @Param("cyberCode") String cyberCode,
                                       @Param("electronicCode") String electronicCode);
-    @Query("SELECT m FROM MajorRanking m WHERE m.ranking IN (1, 2, 3) AND" +
+    @Query("SELECT m FROM MajorRanking m WHERE m.ranking IN (2, 1, 3) AND" +
             " m.student.studentCode LIKE %:mainCode%")
     List<MajorRanking> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode);
