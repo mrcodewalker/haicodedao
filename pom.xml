@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>codewalker</artifactId>
+	<artifactId>codewalker.kma</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>codewalker.kma</name>
 	<packaging>jar</packaging>

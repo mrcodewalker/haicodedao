@@ -11,13 +11,13 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the built artifact from the build stage
-COPY --from=build /app/target/*.war app.war
+COPY --from=build /app/target/*.jar app.jar
 
 # Expose the port that the application runs on
 EXPOSE 8080
 
 # Specify the command to run the application
-ENTRYPOINT ["java", "-jar", "app.war"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
 # Example: Docker run command with environment variables
 # docker run -p 9091:9091 -e SPRING_DATASOURCE_URL=jdbc:mysql://monorail.proxy.rlwy.net:55842/railway \
