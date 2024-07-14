@@ -22,7 +22,7 @@ public interface ClassRankingRepository extends JpaRepository<ClassRanking,Long>
     List<ClassRanking> findListFilterBlock(@Param("mainCode") String mainCode,
                                            @Param("cyberCode") String cyberCode,
                                            @Param("electronicCode") String electronicCode);
-    @Query("SELECT c FROM ClassRanking c WHERE c.ranking IN (1, 2, 3) AND" +
+    @Query("SELECT c FROM ClassRanking c WHERE c.ranking IN (2, 1, 3) AND" +
             " c.student.studentCode LIKE %:mainCode%")
     List<ClassRanking> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode);
