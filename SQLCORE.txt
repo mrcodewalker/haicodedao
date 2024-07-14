@@ -106,3 +106,12 @@ CREATE TABLE block_detail_ranking(
 ALTER TABLE block_detail_ranking
 ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
 ALTER TABLE block_detail_ranking ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);
+CREATE TABLE scholarship(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+	ranking INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+ALTER TABLE scholarship
+ADD COLUMN gpa FLOAT NOT NULL CHECK(gpa > 0);
+ALTER TABLE scholarship ADD COLUMN asia_gpa FLOAT NOT NULL CHECK(asia_gpa > 0);

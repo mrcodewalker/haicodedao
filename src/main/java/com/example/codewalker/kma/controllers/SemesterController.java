@@ -444,12 +444,13 @@ public class SemesterController {
         this.semesterRankingService.updateGPA();
         return ResponseEntity.ok("Ranking has been updated");
     }
+    @PostMapping("/update_scholarship")
+    public ResponseEntity<?> scholarshipUpdate(){
+        this.semesterRankingService.scholarshipUpdate();
+        return ResponseEntity.ok("Ranking has been updated");
+    }
     @GetMapping("/scholarship")
     public ResponseEntity<?> ScholarshipRanking(@RequestParam("student_code") String studentCode){
-        return ResponseEntity.ok(SemesterResponse
-                .builder()
-                        .rankingResponses(this.semesterRankingService.findRanking(studentCode))
-                        .subjectResponses(this.semesterRankingService.findSubjects(studentCode))
-                .build());
+        return ResponseEntity.ok(this.semesterRankingService.findRanking(studentCode));
     }
 }

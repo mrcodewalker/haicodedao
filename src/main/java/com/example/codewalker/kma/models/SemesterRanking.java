@@ -27,4 +27,12 @@ public class SemesterRanking {
     private Float gpa;
     @Column(name = "asia_gpa")
     private Float asiaGpa;
+    public static Scholarship formData(SemesterRanking ranking){
+        return Scholarship.builder()
+                .gpa(ranking.getGpa())
+                .student(ranking.getStudent())
+                .ranking(ranking.getRanking())
+                .asiaGpa(ranking.getAsiaGpa())
+                .build();
+    }
 }

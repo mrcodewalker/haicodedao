@@ -1,5 +1,6 @@
 package com.example.codewalker.kma.responses;
 
+import com.example.codewalker.kma.models.Scholarship;
 import com.example.codewalker.kma.models.SemesterRanking;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -24,6 +25,16 @@ public class SemesterRankingResponse {
     @JsonProperty("asia_gpa")
     private Float asiaGpa;
     public SemesterRankingResponse formData(SemesterRanking ranking){
+        return SemesterRankingResponse.builder()
+                .gpa(ranking.getGpa())
+                .studentName(ranking.getStudent().getStudentName())
+                .ranking(ranking.getRanking())
+                .studentCode(ranking.getStudent().getStudentCode())
+                .asiaGpa(ranking.getAsiaGpa())
+                .studentClass(ranking.getStudent().getStudentClass())
+                .build();
+    }
+    public static SemesterRankingResponse convert(Scholarship ranking){
         return SemesterRankingResponse.builder()
                 .gpa(ranking.getGpa())
                 .studentName(ranking.getStudent().getStudentName())

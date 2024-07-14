@@ -24,6 +24,7 @@ public class SemesterRankingService implements ISemesterRankingService{
     private final SemesterRankingRepository semesterRankingRepository;
     private final StudentRepository studentRepository;
     private final SemesterRepository semesterRepository;
+    private final ScholarshipRepository scholarshipRepository;
     private final SubjectService subjectService;
     private List<SemesterRanking> cachedRankings;
 //    @PostConstruct
@@ -49,7 +50,28 @@ public class SemesterRankingService implements ISemesterRankingService{
         }
         this.semesterRankingRepository.saveAll(rankingList);
     }
-
+    public void scholarshipUpdate() {
+        List<Student> studentList = new ArrayList<>();
+        studentList = this.studentRepository.findAll();
+        for (int i=0;i<studentList.size();i++){
+            if (this.scholarshipRepository.findByStudentCode(
+                    studentList.get(i).getStudentCode()
+            )!=null
+        || this.scholarshipRepository.findListFilter(studentList.get(i).getStudentCode().substring(0,4)).size()>0){
+                continue;
+            }
+            List<SemesterRanking> rankings = this.semesterRankingRepository
+                    .findListFilter(studentList.get(i).getStudentCode().substring(0,4));
+            List<Scholarship> scholarships = new ArrayList<>();
+            for (int j=0;j<rankings.size();j++){
+                rankings.get(j).setRanking(j+1L);
+                scholarships.add(SemesterRanking.formData(rankings.get(j)));
+            }
+            if (scholarships.size()>0) {
+                this.scholarshipRepository.saveAll(scholarships);
+            }
+        }
+    }
     @Override
     @Transactional
     public void updateGPA() {
@@ -130,7 +152,6 @@ public class SemesterRankingService implements ISemesterRankingService{
         for (int i = 0; i < newRankings.size(); i++) {
             newRankings.get(i).setRanking((long) (i + 1));
         }
-
         semesterRankingRepository.saveAll(newRankings);
     }
 
@@ -138,12 +159,17 @@ public class SemesterRankingService implements ISemesterRankingService{
     public List<SemesterRankingResponse> findRanking(String studentCode) {
         studentCode = studentCode.toUpperCase();
         List<SemesterRankingResponse> responses = new ArrayList<>();
-        responses.add(new SemesterRankingResponse().formData(this.semesterRankingRepository.findByStudentId(this.studentRepository.findByStudentCode(studentCode).getStudentId())));
-        responses.add(new SemesterRankingResponse().formData(this.semesterRankingRepository.findByRanking(2L)));
-        responses.add(new SemesterRankingResponse().formData(this.semesterRankingRepository.findByRanking(1L)));
-        responses.add(new SemesterRankingResponse().formData(this.semesterRankingRepository.findByRanking(3L)));
-
-
+        responses.add(
+                SemesterRankingResponse.convert(
+                        this.scholarshipRepository.findByStudentCode(studentCode)
+                )
+        );
+        List<Scholarship> scholarships = this.scholarshipRepository.findTopRankingsByStudentCodes(
+                studentCode.substring(0,4)
+        );
+        for (Scholarship scholarship : scholarships){
+            responses.add(SemesterRankingResponse.convert(scholarship));
+        }
         return responses;
     }
 
