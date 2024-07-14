@@ -451,6 +451,11 @@ public class SemesterController {
     }
     @GetMapping("/scholarship")
     public ResponseEntity<?> ScholarshipRanking(@RequestParam("student_code") String studentCode){
-        return ResponseEntity.ok(this.semesterRankingService.findRanking(studentCode));
+        return ResponseEntity.ok(
+                SemesterResponse.builder()
+                        .rankingResponses(this.semesterRankingService.findRanking(studentCode))
+                        .subjectResponses(this.semesterRankingService.findSubjects(studentCode))
+                        .build()
+        );
     }
 }
