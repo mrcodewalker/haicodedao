@@ -1,38 +1,3 @@
-server:
-  port: 8080
-
-spring:
-  profiles:
-    active: development
-
-  http:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
-
-  mvc:
-    cors:
-      allowed-origins: http://localhost:4200
-
-  datasource:
-    url: jdbc:mysql://root:viCcTTMFvChjFidsLYaBdRIpEubzzCFC@monorail.proxy.rlwy.net:55842/codewalker
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: viCcTTMFvChjFidsLYaBdRIpEubzzCFC
-
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
-
-api:
-  prefix: api/v1
-
 #server:
 #  port: 8080
 #
@@ -51,10 +16,10 @@ api:
 #      allowed-origins: http://localhost:4200
 #
 #  datasource:
-#    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://monorail.proxy.rlwy.net:55842/codewalker}
+#    url: jdbc:mysql://root:viCcTTMFvChjFidsLYaBdRIpEubzzCFC@monorail.proxy.rlwy.net:55842/codewalker
 #    driver-class-name: com.mysql.cj.jdbc.Driver
-#    username: ${SPRING_DATASOURCE_USERNAME:root}
-#    password: ${SPRING_DATASOURCE_PASSWORD:viCcTTMFvChjFidsLYaBdRIpEubzzCFC}
+#    username: root
+#    password: viCcTTMFvChjFidsLYaBdRIpEubzzCFC
 #
 #  jpa:
 #    show-sql: true
@@ -67,6 +32,41 @@ api:
 #
 #api:
 #  prefix: api/v1
+
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: development
+
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+  mvc:
+    cors:
+      allowed-origins: http://localhost:4200
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://monorail.proxy.rlwy.net:55842/codewalker}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:viCcTTMFvChjFidsLYaBdRIpEubzzCFC}
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+api:
+  prefix: api/v1
 
 #server:
 #  port: 8080
