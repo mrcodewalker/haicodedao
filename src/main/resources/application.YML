@@ -13,7 +13,7 @@ spring:
 
   mvc:
     cors:
-      allowed-origins: http://localhost:4200
+      allowed-origins: https://kma-legend.onrender.com
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://monorail.proxy.rlwy.net:55842/codewalker}

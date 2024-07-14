@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/block_ranking")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "https://kma-legend.onrender.com")
 public class BlockRankingController {
 }
