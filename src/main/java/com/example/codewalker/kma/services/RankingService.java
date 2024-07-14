@@ -258,9 +258,10 @@ public class RankingService implements IRankingService {
         result.add(RankingResponse.formBlockRanking(blockRankingRepository.findByStudentCode(studentCode)));
         List<BlockRanking> list = this.blockRankingRepository
                 .findTopRankingsByStudentCodes(convertCode.get(0), convertCode.get(1), convertCode.get(2));
-        for (BlockRanking blockRanking : list){
-            result.add(RankingResponse.formBlockRanking(blockRanking));
-        }
+        result.add(RankingResponse.formBlockRanking(list.get(1)));
+        result.add(RankingResponse.formBlockRanking(list.get(0)));
+        result.add(RankingResponse.formBlockRanking(list.get(2)));
+
         return result;
     }
 
@@ -272,9 +273,9 @@ public class RankingService implements IRankingService {
         result.add(RankingResponse.formClassRanking(classRankingRepository.findByStudentCode(studentCode)));
         List<ClassRanking> list = this.classRankingRepository
                 .findTopRankingsByStudentCodes(classCode);
-        for (ClassRanking classRanking : list){
-            result.add(RankingResponse.formClassRanking(classRanking));
-        }
+        result.add(RankingResponse.formClassRanking(list.get(1)));
+        result.add(RankingResponse.formClassRanking(list.get(0)));
+        result.add(RankingResponse.formClassRanking(list.get(2)));
         return result;
     }
 
@@ -289,9 +290,9 @@ public class RankingService implements IRankingService {
         result.add(RankingResponse.formData(rankingRepository.findByStudentCode(studentCode)));
         List<Ranking> list = this.rankingRepository
                 .findTopRankingsByStudentCodes(studentCode);
-        for (Ranking ranking : list){
-            result.add(RankingResponse.formData(ranking));
-        }
+        result.add(RankingResponse.formData(list.get(1)));
+        result.add(RankingResponse.formData(list.get(0)));
+        result.add(RankingResponse.formData(list.get(2)));
         return result;
     }
 
@@ -302,9 +303,9 @@ public class RankingService implements IRankingService {
         result.add(RankingResponse.formMajorRanking(majorRankingRepository.findByStudentCode(studentCode)));
         List<MajorRanking> list = this.majorRankingRepository
                 .findTopRankingsByStudentCodes(majorCode);
-        for (MajorRanking majorRanking : list){
-            result.add(RankingResponse.formMajorRanking(majorRanking));
-        }
+        result.add(RankingResponse.formMajorRanking(list.get(1)));
+        result.add(RankingResponse.formMajorRanking(list.get(0)));
+        result.add(RankingResponse.formMajorRanking(list.get(2)));
         return result;
     }
 
@@ -316,9 +317,9 @@ public class RankingService implements IRankingService {
         result.add(RankingResponse.formBlockDetailRanking(blockDetailRankingRepository.findByStudentCode(studentCode)));
         List<BlockDetailRanking> list = this.blockDetailRankingRepository
                 .findTopRankingsByStudentCodes(mainCode);
-        for (BlockDetailRanking blockDetailRanking : list){
-            result.add(RankingResponse.formBlockDetailRanking(blockDetailRanking));
-        }
+        result.add(RankingResponse.formBlockDetailRanking(list.get(1)));
+        result.add(RankingResponse.formBlockDetailRanking(list.get(0)));
+        result.add(RankingResponse.formBlockDetailRanking(list.get(2)));
         return result;
     }
     public List<String> convertToBlockCode(String studentCode){
