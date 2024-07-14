@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/schedules")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "https://kma-legend.onrender.com")
 public class ScheduleController {
     private final ScheduleService scheduleService;
     @PostMapping("/upload")

@@ -23,7 +23,7 @@ import java.util.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/semester")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "https://kma-legend.onrender.com")
 public class SemesterController {
     private final SemesterService semesterService;
     private final ScoreService scoreService;

@@ -23,7 +23,7 @@ import java.util.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/scores")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "https://kma-legend.onrender.com")
 public class ScoreController {
     // Path =  "C:\Users\ADMIN\Downloads\test.pdf"
     private final SubjectService subjectService;
