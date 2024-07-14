@@ -14,6 +14,8 @@ public interface SemesterRankingRepository extends JpaRepository<SemesterRanking
     @Query("SELECT s FROM SemesterRanking s WHERE s.student.studentId = :studentId")
     SemesterRanking findByStudentId(@Param("studentId") Long studentId);
     SemesterRanking findByRanking(Long ranking);
+    @Query("SELECT s FROM SemesterRanking s WHERE s.student.studentCode = :studentCode")
+    SemesterRanking findByStudentCode(@Param("studentCode") String studentCode);
     @Query("SELECT s FROM SemesterRanking s WHERE s.student.studentCode LIKE :mainCode%")
-    List<Ranking> findListFilter(@Param("mainCode") String mainCode);
+    List<SemesterRanking> findListFilter(@Param("mainCode") String mainCode);
 }
