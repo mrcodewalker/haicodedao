@@ -4,6 +4,7 @@ import com.example.codewalker.kma.models.Semester;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
 import com.example.codewalker.kma.repositories.StudentRepository;
+import com.example.codewalker.kma.responses.RankingResponse;
 import com.example.codewalker.kma.responses.SubjectResponse;
 import com.example.codewalker.kma.models.*;
 import com.example.codewalker.kma.repositories.*;
@@ -167,9 +168,9 @@ public class SemesterRankingService implements ISemesterRankingService{
         List<Scholarship> scholarships = this.scholarshipRepository.findTopRankingsByStudentCodes(
                 studentCode.substring(0,4)
         );
-        for (Scholarship scholarship : scholarships){
-            responses.add(SemesterRankingResponse.convert(scholarship));
-        }
+        responses.add(SemesterRankingResponse.convert(scholarships.get(1)));
+        responses.add(SemesterRankingResponse.convert(scholarships.get(0)));
+        responses.add(SemesterRankingResponse.convert(scholarships.get(2)));
         return responses;
     }
 
