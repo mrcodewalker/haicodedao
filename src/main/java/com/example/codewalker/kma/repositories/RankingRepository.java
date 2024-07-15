@@ -21,7 +21,7 @@ public interface RankingRepository extends JpaRepository<Ranking,Long> {
     List<Ranking> findListFilterBlock(@Param("mainCode") String mainCode,
                                       @Param("cyberCode") String cyberCode,
                                       @Param("electronicCode") String electronicCode);
-    @Query("SELECT r FROM Ranking r WHERE r.ranking IN (2, 1, 3)")
+    @Query("SELECT r FROM Ranking r WHERE r.ranking IN (1, 2, 3)")
     List<Ranking> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode);
 

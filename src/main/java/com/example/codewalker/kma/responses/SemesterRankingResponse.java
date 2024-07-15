@@ -24,7 +24,7 @@ public class SemesterRankingResponse {
     private Float gpa;
     @JsonProperty("asia_gpa")
     private Float asiaGpa;
-    public SemesterRankingResponse formData(SemesterRanking ranking){
+    public static SemesterRankingResponse formData(SemesterRanking ranking){
         return SemesterRankingResponse.builder()
                 .gpa(ranking.getGpa())
                 .studentName(ranking.getStudent().getStudentName())
