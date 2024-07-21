@@ -1,5 +1,6 @@
 package com.example.codewalker.kma.controllers;
 
+import com.example.codewalker.kma.dtos.LoginDTO;
 import com.example.codewalker.kma.services.LoginService;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpEntity;
@@ -33,7 +34,7 @@ public class LoginController {
 
     private final LoginService loginService;
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) throws IOException {
-        return this.loginService.login(username, password);
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) throws IOException {
+        return this.loginService.login(loginDTO.getUsername(), loginDTO.getPassword());
     }
 }
