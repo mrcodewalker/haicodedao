@@ -1,9 +1,12 @@
 package com.example.codewalker.kma.services;
 
+import com.example.codewalker.kma.dtos.CreateScoreDTO;
+import com.example.codewalker.kma.dtos.ScoreDTO;
 import com.example.codewalker.kma.models.Score;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.repositories.ScoreRepository;
 import com.example.codewalker.kma.repositories.StudentRepository;
+import com.example.codewalker.kma.repositories.SubjectRepository;
 import com.example.codewalker.kma.responses.ListScoreResponse;
 import com.example.codewalker.kma.responses.ScoreResponse;
 import com.example.codewalker.kma.responses.StudentResponse;
@@ -19,7 +22,7 @@ import java.util.List;
 public class ScoreService implements IScoreService{
     private final ScoreRepository scoreRepository;
     private final StudentRepository studentRepository;
-
+    private final SubjectRepository subjectRepository;
     private final StudentService studentService;
 
     @Override
@@ -79,6 +82,27 @@ public class ScoreService implements IScoreService{
     @Override
     public void updateRanking() {
 
+    }
+
+    @Override
+    public List<Score> createNewScore(CreateScoreDTO scoreDTO) {
+        List<Score> scores = new ArrayList<>();
+        for (String index: scoreDTO.getListStudent()){
+            Student student = this.studentRepository.findByStudentCode(index.toUpperCase());
+            scores.add(
+                    Score.builder()
+                            .subject(this.subjectRepository.findFirstBySubjectName(scoreDTO.getSubjectName()))
+                            .student(student)
+                            .scoreFirst(scoreDTO.getScoreFirst())
+                            .scoreSecond(scoreDTO.getScoreSecond())
+                            .scoreText(scoreDTO.getScoreText())
+                            .scoreOverall(scoreDTO.getScoreOverall())
+                            .scoreFinal(scoreDTO.getScoreFinal())
+                            .build()
+            );
+        }
+        System.out.println(scores);
+        return this.scoreRepository.saveAll(scores);
     }
 
 }

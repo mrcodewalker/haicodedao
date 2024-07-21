@@ -1,5 +1,6 @@
 package com.example.codewalker.kma.controllers;
 
+import com.example.codewalker.kma.dtos.CreateScoreDTO;
 import com.example.codewalker.kma.models.Score;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
@@ -676,6 +677,15 @@ public class ScoreController {
 
         pdfDocument.close();
         return null;
+    }
+    @PostMapping("/create/score")
+    public ResponseEntity<?> createNewScore(
+            @RequestBody CreateScoreDTO scoreDTO
+            ){
+        return ResponseEntity.ok(
+                this.scoreService.createNewScore(
+                        scoreDTO
+                ));
     }
     public void collectAllSubjectsFake(String pathName) throws Exception {
         File file = new File(pathName);
