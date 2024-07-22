@@ -1,5 +1,11 @@
 package com.example.codewalker.kma.services;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -16,16 +22,23 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.security.Key;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class LoginService implements ILoginService{
     private static final String LOGIN_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/Login.aspx";
     private static final String STUDENT_PROFILE_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/StudentProfileNew/HoSoSinhVien.aspx";
@@ -83,8 +96,8 @@ public class LoginService implements ILoginService{
             String birthday = profileDoc.select("input[name=txtNgaySinh]").val();
 
             Map<String, String> studentInfo = new HashMap<>();
-            studentInfo.put("displayName", displayName);
-            studentInfo.put("studentCode", studentCode);
+            studentInfo.put("display_name", displayName);
+            studentInfo.put("student_code", studentCode);
             studentInfo.put("gender", gender);
             studentInfo.put("birthday", birthday);
 
@@ -99,23 +112,30 @@ public class LoginService implements ILoginService{
             List<Map<String, String>> scheduleData = new ArrayList<>();
             for (Element row : scheduleRows) {
                 Map<String, String> rowData = new HashMap<>();
-                rowData.put("courseName", row.select("td").get(1).text());
-                rowData.put("courseCode", row.select("td").get(2).text());
+                rowData.put("course_name", row.select("td").get(1).text());
+                rowData.put("course_code", row.select("td").get(2).text());
 //                rowData.put("studySchedule", row.select("td").get(3).html().replace("<br>", "\n"));
                 Map<String, String> parsedSchedule = parseSchedule(row.select("td").get(3).html().replace("<br>", "\n"));
-                rowData.put("days", parsedSchedule.get("days"));
+                rowData.put("study_days", parsedSchedule.get("days"));
                 rowData.put("lessons", parsedSchedule.get("lessons"));
-                rowData.put("studyLocation", row.select("td").get(4).text());
+                rowData.put("study_location", row.select("td").get(4).text());
                 rowData.put("teacher", row.select("td").get(5).text());
                 scheduleData.add(rowData);
             }
+
+//            String token = Jwts.builder()
+//                    .setSubject(username)
+//                    .setIssuedAt(new Date())
+//                    .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000L))
+//                    .signWith(SignatureAlgorithm.HS256, getSigninKey())
+//                    .compact();
 
             return ResponseEntity.ok(Map.of(
                     "code", "200",
                     "message", "OK",
                     "data", Map.of(
-                            "studentInfo", studentInfo,
-                            "studentSchedule", scheduleData
+                            "student_info", studentInfo,
+                            "student_schedule", scheduleData
                     )
             ));
 
