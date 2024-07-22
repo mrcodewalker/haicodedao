@@ -10,6 +10,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("api/v1/login")
+@CrossOrigin(origins = "https://kma-legend.onrender.com")
 @RequiredArgsConstructor
 public class LoginController {
 
