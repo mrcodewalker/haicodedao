@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -46,10 +47,10 @@ public class CalendarController {
         List<TimelineResponse> schedules = dataDTO.getTimelineResponse();
 
         for (TimelineResponse entry : schedules) {
-            String line[] = entry.getStudyDays().split(" ");
-            for (int i=0;i<line.length;i++) {
-                Date studyDate = DATE_FORMAT.parse(line[i]);
-                String[] lessons = entry.getLessons().split(" ");
+            String[] studyDays = entry.getStudyDays().split(" ");
+            String[] lessons = entry.getLessons().split(" ");
+            for (int i = 0; i < studyDays.length; i++) {
+                Date studyDate = DATE_FORMAT.parse(studyDays[i]);
                 addEvent(calendar, entry.getCourseName(), studyDate, lessons[i], entry.getStudyLocation(), entry.getTeacher());
             }
         }
@@ -74,40 +75,54 @@ public class CalendarController {
         Summary summary = new Summary(courseName);
         event.add(summary);
 
-
         // Convert lessons to time ranges
         String startTime = "07:00"; // Default start time
         String endTime = "09:25"; // Default end time
 
-        if (lessons.startsWith("4")) {
-            startTime = "09:35";
-            endTime = "12:00";
-        } else if (lessons.startsWith("7")) {
-            startTime = "12:30";
-            endTime = "14:55";
-        } else if (lessons.startsWith("10")) {
-            startTime = "15:05";
-            endTime = "17:30";
-        } else if (lessons.startsWith("13")) {
-            startTime = "18:00";
-            endTime = "21:00";
+        switch (lessons) {
+            case "1,2,3":
+                startTime = "07:00";
+                endTime = "09:25";
+                break;
+            case "4,5,6":
+                startTime = "09:35";
+                endTime = "12:00";
+                break;
+            case "7,8,9":
+                startTime = "12:30";
+                endTime = "14:55";
+                break;
+            case "10,11,12":
+                startTime = "15:05";
+                endTime = "17:30";
+                break;
+            case "13,14,15":
+                startTime = "18:00";
+                endTime = "21:00";
+                break;
         }
 
         // Create DateTime objects
-        DateTime dtStart = new DateTime(ZonedDateTime.ofInstant(studyDate.toInstant(), ZoneId.systemDefault()).toInstant().toEpochMilli());
-        dtStart.setHours(TIME_FORMAT.parse(startTime).getHours());
-        dtStart.setMinutes(TIME_FORMAT.parse(startTime).getMinutes());
+        java.util.Calendar startCalendar = java.util.Calendar.getInstance();
+        startCalendar.setTime(studyDate);
+        startCalendar.set(java.util.Calendar.HOUR_OF_DAY, TIME_FORMAT.parse(startTime).getHours());
+        startCalendar.set(java.util.Calendar.MINUTE, TIME_FORMAT.parse(startTime).getMinutes());
 
-        DateTime dtEnd = new DateTime(ZonedDateTime.ofInstant(studyDate.toInstant(), ZoneId.systemDefault()).toInstant().toEpochMilli());
-        dtEnd.setHours(TIME_FORMAT.parse(endTime).getHours());
-        dtEnd.setMinutes(TIME_FORMAT.parse(endTime).getMinutes());
+        java.util.Calendar endCalendar = java.util.Calendar.getInstance();
+        endCalendar.setTime(studyDate);
+        endCalendar.set(java.util.Calendar.HOUR_OF_DAY, TIME_FORMAT.parse(endTime).getHours());
+        endCalendar.set(java.util.Calendar.MINUTE, TIME_FORMAT.parse(endTime).getMinutes());
+
+        // Create DateTime objects
+        DateTime dtStart = new DateTime(startCalendar.getTime());
+        DateTime dtEnd = new DateTime(endCalendar.getTime());
 
         // Create DtStart and DtEnd
         event.add(new DtStart(dtStart.toInstant()));
         event.add(new DtEnd(dtEnd.toInstant()));
         event.add(new Description(String.format("Lessons: %s\nTeacher: %s", lessons, teacher)));
         event.add(new Location(location));
-        event.add(new Uid(this.count++ +"@mr.codewalker.kma.legend"));
+        event.add(new Uid(this.count++ + "@mr.codewalker.kma.legend"));
 
         // Add event to calendar
         calendar.add(event);
