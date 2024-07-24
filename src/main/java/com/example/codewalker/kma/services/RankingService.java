@@ -90,7 +90,27 @@ public class RankingService implements IRankingService {
                     count += subject.getSubjectCredits();
                 }
             }
-
+            if (!student.getStudentCode().contains("CT08")
+                    && !student.getStudentCode().contains("CT07")
+                    && !student.getStudentCode().contains("CT06")
+                    && !student.getStudentCode().contains("CT05")
+                    && !student.getStudentCode().contains("DT07")
+                    && !student.getStudentCode().contains("DT06")
+                    && !student.getStudentCode().contains("DT05")
+                    && !student.getStudentCode().contains("DT04")
+                    && !student.getStudentCode().contains("AT20")
+                    && !student.getStudentCode().contains("AT19")
+                    && !student.getStudentCode().contains("AT18")
+                    && !student.getStudentCode().contains("AT17")
+            ){
+                newRankings.add(Ranking.builder()
+                        .student(student)
+                        .gpa(1.0F)
+                        .ranking(1L)
+                        .asiaGpa(2.5F)
+                        .build());
+                continue;
+            }
             if (count != 0) {
                 float roundedGPA = Math.round((gpa / count) * 100) / 100f;
                 float roundedAsiaGPA = Math.round((gpa / count) * 2.5f * 100) / 100f;
