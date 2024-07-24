@@ -67,6 +67,7 @@ public class CalendarController {
         outputter.output(calendar, baos);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("text/calendar"));
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // Change to APPLICATION_OCTET_STREAM for binary file
         headers.setContentDispositionFormData("attachment", "student_schedule.ics");
 
         return ResponseEntity.ok()

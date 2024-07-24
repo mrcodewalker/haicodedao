@@ -16,10 +16,10 @@ spring:
       allowed-origins: https://kma-legend.onrender.com
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://monorail.proxy.rlwy.net:55842/codewalker}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://viaduct.proxy.rlwy.net:52194/codewalker}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:viCcTTMFvChjFidsLYaBdRIpEubzzCFC}
+    password: ${SPRING_DATASOURCE_PASSWORD:dQQGzahnxcNTwlzublCxLTkysBLnQmfD}
 
   jpa:
     show-sql: true

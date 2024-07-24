@@ -39,7 +39,7 @@ public class ScoreController {
 
     @PostMapping("/score")
     public ResponseEntity<?> ReadPDFFile() throws Exception {
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot1.pdf");
+        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2021_2022_hk2_dot2_tl.pdf");
         FileInputStream fileInputStream = new FileInputStream(file);
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
@@ -227,36 +227,38 @@ public class ScoreController {
 
                             studentService.createStudent(student);
 
-                            if (rows<0||this.listSubjectsName.size()==0) continue;
-                            if (rows>this.listSubjectsName.size()) continue;
-                            if (rows==this.listSubjectsName.size()) rows--;
-                            String cloneSubjectName = this.listSubjectsName.get(rows);
-
-                            if (firstWord.equals("1")){
-                                if (previousSubject.length()==0) {
-                                    previousSubject = cloneSubjectName;
-                                } else {
-                                    if (cloneSubjectName.equalsIgnoreCase(previousSubject)){
-                                        rows--;
-                                    }
-                                }
-                            }
+//                            if (rows<0||this.listSubjectsName.size()==0) continue;
+//                            if (rows>this.listSubjectsName.size()) continue;
+//                            if (rows==this.listSubjectsName.size()) rows--;
+//                            String cloneSubjectName = this.listSubjectsName.get(rows);
+//
+//                            if (firstWord.equals("1")){
+//                                if (previousSubject.length()==0) {
+//                                    previousSubject = cloneSubjectName;
+//                                } else {
+//                                    if (cloneSubjectName.equalsIgnoreCase(previousSubject)){
+//                                        rows--;
+//                                    }
+//                                }
+//                            }
                             Subject subject = Subject.builder()
                                     .subjectName(this.listSubjectsName.get(rows))
                                     .id(subjectService.findSubjectByName(this.listSubjectsName.get(rows)).getId())
                                     .build();
-//
-////
-                            Score score = Score.builder()
-                                    .scoreFirst(scoreFirst)
-                                    .scoreFinal(scoreFinal)
-                                    .scoreText(scoreText)
-                                    .scoreSecond(scoreSecond)
-                                    .scoreOverall(scoreOverRall)
-                                    .student(student)
-                                    .subject(subject)
-                                    .build();
-                            scoreService.createScore(score);
+
+//                            if (student.getStudentCode().equals("CT060331")){
+//                                System.out.println(scoreFinal+" "+subject.getSubjectName());
+//                            }
+                                Score score = Score.builder()
+                                        .scoreFirst(scoreFirst)
+                                        .scoreFinal(scoreFinal)
+                                        .scoreText(scoreText)
+                                        .scoreSecond(scoreSecond)
+                                        .scoreOverall(scoreOverRall)
+                                        .student(student)
+                                        .subject(subject)
+                                        .build();
+                                scoreService.createScore(score);
 //                                System.out.println(score);
 
                         }
@@ -439,11 +441,11 @@ public class ScoreController {
 //            System.out.println(listSubjectsName.size());
                 }
             }
-//            int cnt = 0;
-//            for (String clone : listSubjectsName) {
-//                System.out.println(cnt + " " + clone);
-//                cnt++;
-//            }
+            int cnt = 0;
+            for (String clone : listSubjectsName) {
+                System.out.println(cnt + " " + clone);
+                cnt++;
+            }
         }
     }
     @PostMapping("/score/complement")
