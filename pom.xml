@@ -146,6 +146,13 @@
 			<artifactId>httpmime</artifactId>
 			<version>4.5.13</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.fortuna.ical4j/ical4j -->
+		<!-- https://mvnrepository.com/artifact/org.mnode.ical4j/ical4j -->
+		<dependency>
+			<groupId>org.mnode.ical4j</groupId>
+			<artifactId>ical4j</artifactId>
+			<version>4.0.0-rc6</version>
+		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
