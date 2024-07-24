@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.TimeZoneRegistry;
 import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,10 +21,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/v1/calendar")
@@ -37,6 +36,7 @@ public class CalendarController {
     private static final String TIME_ZONE_ID = "Asia/Ho_Chi_Minh"; // Change this to your local time zone
     private static final TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
     private static final TimeZone timeZone = registry.getTimeZone(TIME_ZONE_ID);
+
     public Long count = 0L;
 
     @PostMapping("/export")
@@ -49,6 +49,7 @@ public class CalendarController {
         version.setValue("2.0");
         calendar.add(version);
         calendar.add(new CalScale("GREGORIAN"));
+
         DataDTO dataDTO = calendarResponse.getDataDTO();
         List<TimelineResponse> schedules = dataDTO.getTimelineResponse();
 
@@ -108,7 +109,7 @@ public class CalendarController {
                 break;
         }
 
-        // Create DateTime objects
+        // Parse the start and end times
         java.util.Calendar startCalendar = java.util.Calendar.getInstance();
         startCalendar.setTime(studyDate);
         startCalendar.set(java.util.Calendar.HOUR_OF_DAY, TIME_FORMAT.parse(startTime).getHours());
@@ -121,11 +122,12 @@ public class CalendarController {
         endCalendar.set(java.util.Calendar.MINUTE, TIME_FORMAT.parse(endTime).getMinutes());
         endCalendar.setTimeZone(timeZone);
 
-        // Create DateTime objects
+        // Create DateTime objects with time zone
         DateTime dtStart = new DateTime(startCalendar.getTime());
-        dtStart.setUtc(true);
+        dtStart.setTimeZone(timeZone);
+
         DateTime dtEnd = new DateTime(endCalendar.getTime());
-        dtEnd.setUtc(true);
+        dtEnd.setTimeZone(timeZone);
 
         // Create DtStart and DtEnd
         event.add(new DtStart(dtStart.toInstant()));
