@@ -15,7 +15,7 @@ public class RankingController {
     private final StudentService studentService;
     @PostMapping("/gpa_update")
     public ResponseEntity<?> updateGPA() throws Exception{
-        this.rankingService.updateGPA();
+         this.rankingService.updateGPA();
         return ResponseEntity.ok("Update successfully!");
     }
     @PostMapping("/ranking_update")

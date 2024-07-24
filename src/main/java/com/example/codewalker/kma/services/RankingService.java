@@ -103,12 +103,6 @@ public class RankingService implements IRankingService {
                     && !student.getStudentCode().contains("AT18")
                     && !student.getStudentCode().contains("AT17")
             ){
-                newRankings.add(Ranking.builder()
-                        .student(student)
-                        .gpa(1.0F)
-                        .ranking(1L)
-                        .asiaGpa(2.5F)
-                        .build());
                 continue;
             }
             if (count != 0) {
@@ -123,7 +117,7 @@ public class RankingService implements IRankingService {
             }
         }
 
-        newRankings.sort(Comparator.comparing(Ranking::getAsiaGpa).reversed());
+        newRankings.sort(Comparator.comparing(Ranking::getGpa).reversed());
         for (int i = 0; i < newRankings.size(); i++) {
             newRankings.get(i).setRanking((long) (i + 1));
         }
@@ -256,7 +250,7 @@ public class RankingService implements IRankingService {
     @Override
     public RankingResponse findByRanking(Long ranking) {
         Ranking rankingEntity = rankingRepository.findByRanking(ranking);
-        return new RankingResponse().formData(rankingEntity);
+        return RankingResponse.formData(rankingEntity);
     }
 
     private List<RankingResponse> findRankingResponses(List<Ranking> rankingList, String studentCode) {
