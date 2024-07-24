@@ -34,8 +34,11 @@ public class CalendarController {
 
     @PostMapping("/export")
     public ResponseEntity<byte[]> exportCalendar(@RequestBody CalendarResponse calendarResponse) throws ParseException, IOException {
+        this.count = 0L;
         Calendar calendar = new Calendar();
+        ProdId prodId = new ProdId("-//KMA Legend//NONSGML v1.0//EN");
         Version version = new Version();
+        calendar.add(prodId);
         version.setValue("2.0");
         calendar.add(version);
         calendar.add(new CalScale("GREGORIAN"));
@@ -54,7 +57,6 @@ public class CalendarController {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         CalendarOutputter outputter = new CalendarOutputter();
         outputter.output(calendar, baos);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("text/calendar"));
         headers.setContentDispositionFormData("attachment", "student_schedule.ics");
