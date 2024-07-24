@@ -7,7 +7,10 @@ import lombok.RequiredArgsConstructor;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.TimeZoneRegistry;
+import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,6 +34,9 @@ public class CalendarController {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+    private static final String TIME_ZONE_ID = "Asia/Ho_Chi_Minh"; // Change this to your local time zone
+    private static final TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
+    private static final TimeZone timeZone = registry.getTimeZone(TIME_ZONE_ID);
     public Long count = 0L;
 
     @PostMapping("/export")
@@ -107,15 +113,19 @@ public class CalendarController {
         startCalendar.setTime(studyDate);
         startCalendar.set(java.util.Calendar.HOUR_OF_DAY, TIME_FORMAT.parse(startTime).getHours());
         startCalendar.set(java.util.Calendar.MINUTE, TIME_FORMAT.parse(startTime).getMinutes());
+        startCalendar.setTimeZone(timeZone);
 
         java.util.Calendar endCalendar = java.util.Calendar.getInstance();
         endCalendar.setTime(studyDate);
         endCalendar.set(java.util.Calendar.HOUR_OF_DAY, TIME_FORMAT.parse(endTime).getHours());
         endCalendar.set(java.util.Calendar.MINUTE, TIME_FORMAT.parse(endTime).getMinutes());
+        endCalendar.setTimeZone(timeZone);
 
         // Create DateTime objects
         DateTime dtStart = new DateTime(startCalendar.getTime());
+        dtStart.setUtc(true);
         DateTime dtEnd = new DateTime(endCalendar.getTime());
+        dtEnd.setUtc(true);
 
         // Create DtStart and DtEnd
         event.add(new DtStart(dtStart.toInstant()));
