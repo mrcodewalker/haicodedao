@@ -24,5 +24,6 @@ public interface RankingRepository extends JpaRepository<Ranking,Long> {
     @Query("SELECT r FROM Ranking r WHERE r.ranking IN (1, 2, 3)")
     List<Ranking> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode);
-
+    @Query("SELECT r FROM Ranking r WHERE r.ranking IN (1, 2, 3)")
+    List<Ranking> findListTopRanking();
 }

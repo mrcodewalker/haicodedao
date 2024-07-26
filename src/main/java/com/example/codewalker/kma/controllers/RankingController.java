@@ -49,9 +49,9 @@ public class RankingController {
                 this.rankingService.findSchoolRanking(studentCode)
         );
     }
-    @GetMapping("/top/{ranking}")
-    public  ResponseEntity<?> findTopRanking(@PathVariable("ranking") Long ranking){
-        return ResponseEntity.ok(this.rankingService.findByRanking(ranking));
+    @GetMapping("/top")
+    public  ResponseEntity<?> findTopRanking(){
+        return ResponseEntity.ok(this.rankingService.findListTopRanking());
     }
     @GetMapping("/block")
     public ResponseEntity<?> getBlockRanking(@RequestParam("student_code") String studentCode) throws Exception {
