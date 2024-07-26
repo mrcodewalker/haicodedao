@@ -336,6 +336,18 @@ public class RankingService implements IRankingService {
         result.add(RankingResponse.formBlockDetailRanking(list.get(2)));
         return result;
     }
+
+    @Override
+    public List<RankingResponse> findListTopRanking() {
+        List<Ranking> list = this.rankingRepository
+                .findListTopRanking();
+        List<RankingResponse> result = new ArrayList<>();
+        result.add(RankingResponse.formData(list.get(1)));
+        result.add(RankingResponse.formData(list.get(0)));
+        result.add(RankingResponse.formData(list.get(2)));
+        return result;
+    }
+
     public List<String> convertToBlockCode(String studentCode){
         String mainCode = studentCode.substring(0, 4);
         String cyberCode = "";

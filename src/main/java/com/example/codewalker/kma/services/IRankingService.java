@@ -13,4 +13,5 @@ public interface IRankingService {
     List<RankingResponse> findClassRanking(String studentCode);
     List<RankingResponse> findMajorRanking(String studentCode);
     List<RankingResponse> findBlockDetailRanking(String studentCode);
+    List<RankingResponse> findListTopRanking();
 }
