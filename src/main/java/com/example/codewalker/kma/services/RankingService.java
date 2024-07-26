@@ -317,8 +317,8 @@ public class RankingService implements IRankingService {
         result.add(RankingResponse.formMajorRanking(majorRankingRepository.findByStudentCode(studentCode)));
         List<MajorRanking> list = this.majorRankingRepository
                 .findTopRankingsByStudentCodes(majorCode);
-        result.add(RankingResponse.formMajorRanking(list.get(0)));
         result.add(RankingResponse.formMajorRanking(list.get(1)));
+        result.add(RankingResponse.formMajorRanking(list.get(0)));
         result.add(RankingResponse.formMajorRanking(list.get(2)));
         return result;
     }
