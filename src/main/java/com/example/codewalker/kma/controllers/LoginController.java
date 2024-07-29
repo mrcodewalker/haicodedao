@@ -19,4 +19,8 @@ public class LoginController {
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) throws IOException {
         return this.loginService.login(loginDTO.getUsername(), loginDTO.getPassword());
     }
+    @PostMapping("/login/virtual_calendar")
+    public ResponseEntity<?> loginVirtualCalendar(@RequestBody LoginDTO loginDTO) throws IOException {
+        return this.loginService.loginVirtualCalendar(loginDTO.getUsername(), loginDTO.getPassword());
+    }
 }

@@ -352,122 +352,37 @@ public class RankingService implements IRankingService {
         String mainCode = studentCode.substring(0, 4);
         String cyberCode = "";
         String electronicCode ="";
-        if (mainCode.equals("CT08")){
-            cyberCode="AT20";
-            electronicCode="DT07";
-        } else {
-            if (mainCode.equals("CT07")){
-                cyberCode="AT19";
-                electronicCode="DT06";
-            } else {
-                if (mainCode.equals("CT06")){
-                    cyberCode="AT18";
-                    electronicCode="DT05";
-                } else {
-                    if (mainCode.equals("CT05")){
-                        cyberCode="AT17";
-                        electronicCode="DT04";
-                    } else {
-                        if (mainCode.equals("CT04")){
-                            cyberCode="AT16";
-                            electronicCode="DT03";
-                        } else {
-                            if (mainCode.equals("CT03")){
-                                cyberCode="AT15";
-                                electronicCode="DT02";
-                            }
-                            else {
-                                if (mainCode.equals("CT02")) {
-                                    cyberCode = "AT14";
-                                    electronicCode = "DT01";
-                                }
-                                else {
-                                    if (mainCode.equals("CT01")) {
-                                        cyberCode = "AT13";
-                                        electronicCode = "AT13";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (mainCode.equals("AT20")){
-            cyberCode="CT08";
-            electronicCode="DT07";
-        } else {
-            if (mainCode.equals("AT19")){
-                cyberCode="CT07";
-                electronicCode="DT06";
-            } else {
-                if (mainCode.equals("AT18")){
-                    cyberCode="CT06";
-                    electronicCode="DT05";
-                } else {
-                    if (mainCode.equals("AT17")){
-                        cyberCode="CT05";
-                        electronicCode="DT04";
-                    } else {
-                        if (mainCode.equals("AT16")){
-                            cyberCode="CT04";
-                            electronicCode="DT03";
-                        } else {
-                            if (mainCode.equals("AT15")){
-                                cyberCode="CT03";
-                                electronicCode="DT02";
-                            }
-                            else {
-                                if (mainCode.equals("AT14")) {
-                                    cyberCode = "CT02";
-                                    electronicCode = "DT01";
-                                }
-                                else {
-                                    if (mainCode.equals("AT13")) {
-                                        cyberCode = "CT01";
-                                        electronicCode = cyberCode;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (mainCode.equals("DT07")){
-            cyberCode="CT08";
-            electronicCode="AT20";
-        } else {
-            if (mainCode.equals("DT06")){
-                cyberCode="CT07";
-                electronicCode="AT19";
-            } else {
-                if (mainCode.equals("DT05")){
-                    cyberCode="CT06";
-                    electronicCode="AT18";
-                } else {
-                    if (mainCode.equals("DT04")){
-                        cyberCode="CT05";
-                        electronicCode="AT17";
-                    } else {
-                        if (mainCode.equals("DT03")){
-                            cyberCode="CT04";
-                            electronicCode="AT16";
-                        } else {
-                            if (mainCode.equals("DT02")){
-                                cyberCode="CT03";
-                                electronicCode="AT15";
-                            }
-                            else {
-                                if (mainCode.equals("DT01")) {
-                                    cyberCode = "CT02";
-                                    electronicCode = "AT14";
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        Map<String, String[]> codeMap = new HashMap<>();
+        codeMap.put("CT08", new String[]{"AT20", "DT07"});
+        codeMap.put("CT07", new String[]{"AT19", "DT06"});
+        codeMap.put("CT06", new String[]{"AT18", "DT05"});
+        codeMap.put("CT05", new String[]{"AT17", "DT04"});
+        codeMap.put("CT04", new String[]{"AT16", "DT03"});
+        codeMap.put("CT03", new String[]{"AT15", "DT02"});
+        codeMap.put("CT02", new String[]{"AT14", "DT01"});
+        codeMap.put("CT01", new String[]{"AT13", "AT13"});
+
+        codeMap.put("AT20", new String[]{"CT08", "DT07"});
+        codeMap.put("AT19", new String[]{"CT07", "DT06"});
+        codeMap.put("AT18", new String[]{"CT06", "DT05"});
+        codeMap.put("AT17", new String[]{"CT05", "DT04"});
+        codeMap.put("AT16", new String[]{"CT04", "DT03"});
+        codeMap.put("AT15", new String[]{"CT03", "DT02"});
+        codeMap.put("AT14", new String[]{"CT02", "DT01"});
+        codeMap.put("AT13", new String[]{"CT01", "CT01"});
+
+        codeMap.put("DT07", new String[]{"CT08", "AT20"});
+        codeMap.put("DT06", new String[]{"CT07", "AT19"});
+        codeMap.put("DT05", new String[]{"CT06", "AT18"});
+        codeMap.put("DT04", new String[]{"CT05", "AT17"});
+        codeMap.put("DT03", new String[]{"CT04", "AT16"});
+        codeMap.put("DT02", new String[]{"CT03", "AT15"});
+        codeMap.put("DT01", new String[]{"CT02", "AT14"});
+
+        if (codeMap.containsKey(mainCode)) {
+            String[] codes = codeMap.get(mainCode);
+            cyberCode = codes[0];
+            electronicCode = codes[1];
         }
         if (cyberCode.equals("")){
             cyberCode = mainCode;
