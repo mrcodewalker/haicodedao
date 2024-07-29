@@ -322,6 +322,7 @@ public class LoginService implements ILoginService{
                                     .course(validCourse.get(count))
                                     .timelineResponse(timelineResponse)
                                     .baseTime(baseTime)
+                                    .courseName(courseName)
                                     .build();
 
                             result.add(virtualCalendarResponse);
