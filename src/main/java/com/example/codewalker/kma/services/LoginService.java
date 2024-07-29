@@ -1,5 +1,7 @@
 package com.example.codewalker.kma.services;
 
+import com.example.codewalker.kma.responses.TimelineResponse;
+import com.example.codewalker.kma.responses.VirtualCalendarResponse;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -9,11 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -43,6 +49,7 @@ public class LoginService implements ILoginService{
     private static final String LOGIN_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/Login.aspx";
     private static final String STUDENT_PROFILE_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/StudentProfileNew/HoSoSinhVien.aspx";
     private static final String STUDENT_SCHEDULE_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/Reports/Form/StudentTimeTable.aspx";
+    private static final String STUDENT_VIRTUAL_CALENDAR = "http://qldt.actvn.edu.vn/cmcsoft.iu.web.info/StudyRegister/StudyRegister.aspx";
     private static final String DATE_FORMAT = "dd/MM/yyyy";
     private static final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
     public ResponseEntity<?> login(String username, String password) throws IOException {
@@ -153,6 +160,242 @@ public class LoginService implements ILoginService{
                 .append("&btnSubmit=Đăng+nhập");
         return payload.toString();
     }
+
+    @Override
+    public ResponseEntity<?> loginVirtualCalendar(String username, String password) throws IOException {
+        List<VirtualCalendarResponse> result = new ArrayList<>();
+        if (username == null || password == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("code", "400", "message", "Missing Item"));
+        }
+
+        CookieStore cookieStore = new BasicCookieStore();
+        RequestConfig globalConfig = RequestConfig.custom().setRedirectsEnabled(true).build();
+        HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
+
+        try (CloseableHttpClient httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(globalConfig)
+                .setDefaultCookieStore(cookieStore)
+                .build()) {
+
+            // Step 1: Login
+            HttpGet loginGet = new HttpGet(LOGIN_URL);
+            HttpResponse loginGetResponse = httpClient.execute(loginGet);
+            HttpEntity loginGetEntity = loginGetResponse.getEntity();
+            String loginGetHtml = EntityUtils.toString(loginGetEntity);
+
+            Document loginDoc = Jsoup.parse(loginGetHtml);
+            Map<String, String> formData = parseInitialFormData(loginDoc);
+            formData.put("txtUserName", username);
+            formData.put("txtPassword", md5(password));
+            formData.put("btnSubmit", "Đăng nhập");
+
+            List<NameValuePair> urlParameters = new ArrayList<>();
+            for (Map.Entry<String, String> entry : formData.entrySet()) {
+                urlParameters.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+            }
+
+            HttpPost loginPost = new HttpPost(LOGIN_URL);
+            HttpEntity formEntity = new UrlEncodedFormEntity(urlParameters);
+            loginPost.setEntity(formEntity);
+
+            HttpResponse loginPostResponse = httpClient.execute(loginPost);
+            HttpEntity loginPostEntity = loginPostResponse.getEntity();
+            String loginPostHtml = EntityUtils.toString(loginPostEntity);
+
+            Document postLoginDoc = Jsoup.parse(loginPostHtml);
+            String wrongPass = postLoginDoc.select("#lblErrorInfo").text();
+
+            if ("Bạn đã nhập sai tên hoặc mật khẩu!".equals(wrongPass) || "Tên đăng nhập không đúng!".equals(wrongPass)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("code", "401", "message", "Wrong Password"));
+            }
+
+            // Step 2: Get Academic Years
+            HttpGet calendarGet = new HttpGet(STUDENT_VIRTUAL_CALENDAR);
+            HttpResponse calendarResponse = httpClient.execute(calendarGet);
+            HttpEntity calendarEntity = calendarResponse.getEntity();
+            String calendarHtml = EntityUtils.toString(calendarEntity);
+
+            Document calendarDoc = Jsoup.parse(calendarHtml);
+            List<String> validCourse = new ArrayList<>();
+            // Extract academic year options
+            Elements academicYearOptions = calendarDoc.select("select[name=drpAcademicYear] option");
+            List<String> academicYears = new ArrayList<>();
+            for (Element option : academicYearOptions) {
+                String text = option.text();
+                if (!text.isEmpty()) {
+                    validCourse.add(text);
+                    academicYears.add(option.attr("value"));
+                }
+            }
+
+            Elements drpFields = calendarDoc.select("select[name=drpField] option");
+            String drpFieldValue = "";
+            for (Element option : drpFields) {
+                String text = option.text();
+                if (!text.isEmpty()) {
+                    drpFieldValue = text;
+                    break;
+                }
+            }
+
+            // Extract hidden form fields
+            Map<String, String> hiddenFields = new HashMap<>();
+            Elements hiddenInputs = calendarDoc.select("input[type=hidden]");
+            for (Element input : hiddenInputs) {
+                hiddenFields.put(input.attr("name"), input.attr("value"));
+            }
+
+            // Extract courses and their classes for each academic year
+            List<Map<String, Object>> courseClassDetails = new ArrayList<>();
+            int count = 0;
+            for (String academicYear : academicYears) {
+                // Prepare the parameters to submit to get courses
+                List<NameValuePair> courseParams = new ArrayList<>();
+                courseParams.add(new BasicNameValuePair("__EVENTTARGET", "drpAcademicYear"));
+                courseParams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
+                courseParams.add(new BasicNameValuePair("drpAcademicYear", academicYear));
+//                courseParams.add(new BasicNameValuePair("drpField", drpFieldValue));
+                for (Map.Entry<String, String> entry : hiddenFields.entrySet()) {
+                    courseParams.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+                }
+                HttpPost coursePost = new HttpPost(STUDENT_VIRTUAL_CALENDAR);
+                HttpEntity courseFormEntity = new UrlEncodedFormEntity(courseParams, "UTF-8");
+                coursePost.setEntity(courseFormEntity);
+
+                HttpResponse courseResponse = httpClient.execute(coursePost, context);
+                HttpEntity courseEntity = courseResponse.getEntity();
+                String courseHtml = EntityUtils.toString(courseEntity);
+
+                Document courseDoc = Jsoup.parse(courseHtml);
+                Elements courseOptions = courseDoc.select("select[name=drpCourse] option");
+
+                for (Element courseOption : courseOptions) {
+                    String courseName = courseOption.text();
+                    String courseValue = courseOption.attr("value");
+                    if (!courseName.isEmpty() && !courseName.equals("Chọn học phần để hiển thị các lớp học")) {
+                        // Prepare the parameters to submit to view course classes
+                        List<NameValuePair> classParams = new ArrayList<>();
+                        classParams.add(new BasicNameValuePair("drpCourse", courseValue));
+                        classParams.add(new BasicNameValuePair("drpWeekDay", "0")); // Example value
+                        classParams.add(new BasicNameValuePair("btnViewCourseClass", "Hiển thị lớp")); // Add button value here
+
+                        Elements classHiddenInputs = courseDoc.select("input[type=hidden]");
+                        for (Element input : classHiddenInputs) {
+                            classParams.add(new BasicNameValuePair(input.attr("name"), input.attr("value")));
+                        }
+
+                        HttpPost classPost = new HttpPost(STUDENT_VIRTUAL_CALENDAR);
+                        HttpEntity classFormEntity = new UrlEncodedFormEntity(classParams);
+                        classPost.setEntity(classFormEntity);
+
+                        HttpResponse classResponse = httpClient.execute(classPost);
+                        HttpEntity classEntity = classResponse.getEntity();
+                        String classHtml = EntityUtils.toString(classEntity);
+
+                        Document classDoc = Jsoup.parse(classHtml);
+                        Elements classRows = classDoc.select("#gridRegistration tr.cssListItem, #gridRegistration tr.cssListAlternativeItem");
+
+                        for (Element row : classRows) {
+                            // Extract class details
+                            String className = row.select("td").get(2).text(); // Class name
+                            String coursePart = row.select("td").get(3).text(); // Course part
+                            String baseTime = row.select("td").get(4).text(); // Time
+                            String time = row.select("td").get(4).text(); // Time
+                            String location = row.select("td").get(5).text(); // Location
+                            String lecturer = row.select("td").get(6).text(); // Lecturer
+                            Map<String, String> afterParse = this.parseVirtualCalendar(time);
+
+
+                            TimelineResponse timelineResponse = TimelineResponse.builder()
+                                    .courseCode(coursePart)
+                                    .courseName(className)
+                                    .studyLocation(location)
+                                    .teacher(lecturer)
+                                    .lessons(afterParse.get("lessons"))
+                                    .studyDays(afterParse.get("days"))
+                                    .build();
+
+                            VirtualCalendarResponse virtualCalendarResponse = VirtualCalendarResponse.builder()
+                                    .course(validCourse.get(count))
+                                    .timelineResponse(timelineResponse)
+                                    .baseTime(baseTime)
+                                    .build();
+
+                            result.add(virtualCalendarResponse);
+                        }
+                    }
+                }
+                count++;
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "code", "200",
+                    "message", "OK",
+                    "virtual_calendar", result
+            ));
+
+        } catch (IOException | ParseException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("code", "500", "message", "Error: " + e.getMessage()));
+        }
+    }
+    private Map<String, String> parseVirtualCalendar(String studySchedule) throws ParseException {
+        Map<String, String> result = new HashMap<>();
+        List<String> startDay = new ArrayList<>();
+        List<String> endDay = new ArrayList<>();
+        List<String> lessons = new ArrayList<>();
+        List<String> dayInWeek = new ArrayList<>();
+        String[] line = studySchedule.split("Từ");
+        for (String clone : line){
+            if (clone.length()<2) continue;
+            String[] splitOver = clone.split(":");
+            String start = "";
+            String end = "";
+            String day = "";
+            String lesson = "";
+            start = splitOver[0].substring(0, splitOver[0].indexOf("đến")).trim();
+            end = splitOver[0].substring(splitOver[0].lastIndexOf("đến")+3).trim();
+
+            String[] findLessons = splitOver[1].split("Thứ");
+            Calendar calendar = Calendar.getInstance();
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            for (String each: findLessons) {
+                if (each.length() > 5) {
+                    day = each.substring(0, each.indexOf("tiết")).trim();
+                    lesson = each.substring(each.indexOf("tiết") + 4, each.indexOf("(")).trim();
+                    dayInWeek.add(day);
+                    lessons.add(lesson);
+                    Date starts = sdf.parse(start);
+                    Date ends = sdf.parse(end);
+                    calendar.setTime(starts);
+                    while (!calendar.getTime().after(ends)) {
+                        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+                        if (dayOfWeek == dayOfWeekToCalendarDay(day+"")) {
+                            String dateStr = sdf.format(calendar.getTime());
+                            if (result.get("days")==null){
+                                result.put("days", dateStr);
+                                result.put("lessons", lesson);
+                            } else {
+                                result.put("days", result.get("days")+" "+dateStr);
+                                result.put("lessons", result.get("lessons")+" "+lesson);
+                            }
+                        }
+                        calendar.add(Calendar.DATE, 1);
+                    }
+                }
+            }
+
+        }
+        return result;
+    }
+    private Map<String, String> parseScheduleFromRegistration(String time) throws ParseException{
+
+        return null;
+    }
     private Map<String, String> parseInitialFormData(Document doc) {
         Map<String, String> formData = new HashMap<>();
         for (Element input : doc.select("input")) {
@@ -246,4 +489,36 @@ public class LoginService implements ILoginService{
         if (line.contains("Chủ nhật")) return Calendar.SUNDAY;
         return -1;
     }
+    public static List<Map<String, String>> extractTableData(String html) {
+        List<Map<String, String>> rowsData = new ArrayList<>();
+
+        // Phân tích HTML
+        Document doc = Jsoup.parse(html);
+        Element table = doc.getElementById("gridRegistration");
+
+        if (table != null) {
+            // Chọn tất cả các hàng trong tbody
+            Elements rows = table.select("tbody tr.cssRangeItem2");
+
+            for (Element row : rows) {
+                Map<String, String> rowData = new HashMap<>();
+
+                // Lấy dữ liệu từ các cột
+                rowData.put("STT", row.select("td").get(0).text().trim());
+                rowData.put("Chọn", row.select("td input[type=radio]").attr("value").trim());
+                rowData.put("Lớp học phần", row.select("td span[id^=gridRegistration_lblCourseClass_]").text().trim());
+                rowData.put("Học phần", row.select("td span[id^=gridRegistration_lblCourseName_]").text().trim());
+                rowData.put("Thời gian", row.select("td").get(4).text().trim());
+                rowData.put("Địa điểm", row.select("td").get(5).text().trim());
+                rowData.put("Giảng viên", row.select("td").get(6).text().trim());
+                rowData.put("Sĩ số", row.select("td span[id^=gridRegistration_lblExpectationStudent_]").text().trim());
+                rowData.put("Đã ĐK", row.select("td span[id^=gridRegistration_lblCurrentStudent_]").text().trim());
+
+                rowsData.add(rowData);
+            }
+        }
+
+        return rowsData;
+    }
+
 }
