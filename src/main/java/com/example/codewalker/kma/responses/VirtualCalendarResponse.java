@@ -16,4 +16,6 @@ public class VirtualCalendarResponse {
     private TimelineResponse timelineResponse;
     @JsonProperty("base_time")
     private String baseTime;
+    @JsonProperty("course_name")
+    private String courseName;
 }
