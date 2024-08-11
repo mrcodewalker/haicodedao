@@ -84,8 +84,8 @@ public class CalendarController {
         event.add(summary);
 
         // Convert lessons to time ranges
-        String startTime = "07:00"; // Default start time
-        String endTime = "09:25"; // Default end time
+        String startTime = "18:00"; // Default start time
+        String endTime = "20:30"; // Default end time
 
         switch (lessons) {
             case "1,2,3":
@@ -104,10 +104,10 @@ public class CalendarController {
                 startTime = "15:05";
                 endTime = "17:30";
                 break;
-            case "13,14,15,16":
-                startTime = "18:00";
-                endTime = "21:00";
-                break;
+//            case "13,14,15,16":
+//                startTime = "18:00";
+//                endTime = "20:30";
+//                break;
         }
 
         // Parse the start and end times
