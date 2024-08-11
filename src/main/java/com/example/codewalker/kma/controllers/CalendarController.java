@@ -104,10 +104,10 @@ public class CalendarController {
                 startTime = "15:05";
                 endTime = "17:30";
                 break;
-//            case "13,14,15,16":
-//                startTime = "18:00";
-//                endTime = "20:30";
-//                break;
+            case "13,14,15,16":
+                startTime = "18:00";
+                endTime = "20:30";
+                break;
         }
 
         // Parse the start and end times
