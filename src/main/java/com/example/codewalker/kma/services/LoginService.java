@@ -7,6 +7,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -46,11 +48,39 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class LoginService implements ILoginService{
+    private CookieStore cookieStore;
+    private HttpClientContext context;
+    private CloseableHttpClient httpClient;
     private static final String LOGIN_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/Login.aspx";
     private static final String STUDENT_PROFILE_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/StudentProfileNew/HoSoSinhVien.aspx";
     private static final String STUDENT_SCHEDULE_URL = "http://qldt.actvn.edu.vn/CMCSoft.IU.Web.Info/Reports/Form/StudentTimeTable.aspx";
     private static final String STUDENT_VIRTUAL_CALENDAR = "http://qldt.actvn.edu.vn/cmcsoft.iu.web.info/StudyRegister/StudyRegister.aspx";
     private static final String DATE_FORMAT = "dd/MM/yyyy";
+    @PostConstruct
+    public void init() {
+        cookieStore = new BasicCookieStore();
+        RequestConfig globalConfig = RequestConfig.custom().setRedirectsEnabled(true).build();
+        context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
+        httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(globalConfig)
+                .setDefaultCookieStore(cookieStore)
+                .build();
+    }
+//    private void initializeSession(HttpSession session) {
+//        CookieStore cookieStore = new BasicCookieStore();
+//        RequestConfig globalConfig = RequestConfig.custom().setRedirectsEnabled(true).build();
+//        HttpClientContext context = HttpClientContext.create();
+//        context.setCookieStore(cookieStore);
+//        CloseableHttpClient httpClient = HttpClients.custom()
+//                .setDefaultRequestConfig(globalConfig)
+//                .setDefaultCookieStore(cookieStore)
+//                .build();
+//
+//        session.setAttribute("cookieStore", cookieStore);
+//        session.setAttribute("context", context);
+//        session.setAttribute("httpClient", httpClient);
+//    }
     private static final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
     public ResponseEntity<?> login(String username, String password) throws IOException {
         if (username == null || password == null) {
@@ -162,26 +192,17 @@ public class LoginService implements ILoginService{
     }
 
     @Override
-    public ResponseEntity<?> loginVirtualCalendar(String username, String password) throws IOException {
+    public ResponseEntity<?> loginVirtualCalendar(String username, String password, HttpSession session) throws IOException {
         List<VirtualCalendarResponse> result = new ArrayList<>();
         if (username == null || password == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("code", "400", "message", "Missing Item"));
         }
 
-        CookieStore cookieStore = new BasicCookieStore();
-        RequestConfig globalConfig = RequestConfig.custom().setRedirectsEnabled(true).build();
-        HttpClientContext context = HttpClientContext.create();
-        context.setCookieStore(cookieStore);
-
-        try (CloseableHttpClient httpClient = HttpClients.custom()
-                .setDefaultRequestConfig(globalConfig)
-                .setDefaultCookieStore(cookieStore)
-                .build()) {
-
+        try {
             // Step 1: Login
             HttpGet loginGet = new HttpGet(LOGIN_URL);
-            HttpResponse loginGetResponse = httpClient.execute(loginGet);
+            HttpResponse loginGetResponse = httpClient.execute(loginGet, context);
             HttpEntity loginGetEntity = loginGetResponse.getEntity();
             String loginGetHtml = EntityUtils.toString(loginGetEntity);
 
@@ -200,7 +221,7 @@ public class LoginService implements ILoginService{
             HttpEntity formEntity = new UrlEncodedFormEntity(urlParameters);
             loginPost.setEntity(formEntity);
 
-            HttpResponse loginPostResponse = httpClient.execute(loginPost);
+            HttpResponse loginPostResponse = httpClient.execute(loginPost, context);
             HttpEntity loginPostEntity = loginPostResponse.getEntity();
             String loginPostHtml = EntityUtils.toString(loginPostEntity);
 
@@ -212,9 +233,14 @@ public class LoginService implements ILoginService{
                         .body(Map.of("code", "401", "message", "Wrong Password"));
             }
 
+            session.setAttribute("username", username);
+            session.setAttribute("cookieStore", cookieStore);
+            session.setAttribute("context", context);
+            session.setAttribute("httpClient", httpClient);
+
             // Step 2: Get Academic Years
             HttpGet calendarGet = new HttpGet(STUDENT_VIRTUAL_CALENDAR);
-            HttpResponse calendarResponse = httpClient.execute(calendarGet);
+            HttpResponse calendarResponse = httpClient.execute(calendarGet, context);
             HttpEntity calendarEntity = calendarResponse.getEntity();
             String calendarHtml = EntityUtils.toString(calendarEntity);
 
@@ -291,7 +317,7 @@ public class LoginService implements ILoginService{
                         HttpEntity classFormEntity = new UrlEncodedFormEntity(classParams);
                         classPost.setEntity(classFormEntity);
 
-                        HttpResponse classResponse = httpClient.execute(classPost);
+                        HttpResponse classResponse = httpClient.execute(classPost, context);
                         HttpEntity classEntity = classResponse.getEntity();
                         String classHtml = EntityUtils.toString(classEntity);
 
@@ -343,6 +369,153 @@ public class LoginService implements ILoginService{
                     .body(Map.of("code", "500", "message", "Error: " + e.getMessage()));
         }
     }
+
+    @Override
+    public ResponseEntity<?> registerTool(List<String> subjects, HttpSession session) throws IOException {
+        if (subjects == null || subjects.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("code", "400", "message", "No subjects provided"));
+        }
+
+        try {
+            String username = (String) session.getAttribute("username");
+            CookieStore cookieStore = (CookieStore) session.getAttribute("cookieStore");
+            HttpClientContext context = (HttpClientContext) session.getAttribute("context");
+            CloseableHttpClient httpClient = (CloseableHttpClient) session.getAttribute("httpClient");
+
+            if (username == null || context == null || httpClient == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("code", "401", "message", "User not logged in"));
+            }
+
+            Set<String> requirement = new HashSet<>();
+            requirement.addAll(subjects);
+            Set<String> validCourseName = new HashSet<>();
+            for (int i=0;i<subjects.size();i++){
+                validCourseName.add(subjects.get(i).substring(0,subjects.get(i).indexOf("-")).trim());
+            }
+            HttpGet calendarGet = new HttpGet(STUDENT_VIRTUAL_CALENDAR);
+            HttpResponse calendarResponse = httpClient.execute(calendarGet, context);
+            HttpEntity calendarEntity = calendarResponse.getEntity();
+            String calendarHtml = EntityUtils.toString(calendarEntity);
+
+            Document calendarDoc = Jsoup.parse(calendarHtml);
+            List<String> validCourse = new ArrayList<>();
+            List<String> academicYears = new ArrayList<>();
+
+            // Extract academic year options
+            Elements academicYearOptions = calendarDoc.select("select[name=drpAcademicYear] option");
+            for (Element option : academicYearOptions) {
+                String text = option.text();
+                if (!text.isEmpty()) {
+                    validCourse.add(text);
+                    academicYears.add(option.attr("value"));
+                }
+            }
+
+            // Extract hidden form fields
+            Map<String, String> hiddenFields = new HashMap<>();
+            Elements hiddenInputs = calendarDoc.select("input[type=hidden]");
+            for (Element input : hiddenInputs) {
+                hiddenFields.put(input.attr("name"), input.attr("value"));
+            }
+
+            // Extract courses and their classes for each academic year
+            List<Map<String, Object>> courseClassDetails = new ArrayList<>();
+            int count = 0;
+            for (String academicYear : academicYears) {
+                // Prepare the parameters to submit to get courses
+                List<NameValuePair> courseParams = new ArrayList<>();
+                courseParams.add(new BasicNameValuePair("__EVENTTARGET", "drpAcademicYear"));
+                courseParams.add(new BasicNameValuePair("__EVENTARGUMENT", ""));
+                courseParams.add(new BasicNameValuePair("drpAcademicYear", academicYear));
+                for (Map.Entry<String, String> entry : hiddenFields.entrySet()) {
+                    courseParams.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+                }
+                HttpPost coursePost = new HttpPost(STUDENT_VIRTUAL_CALENDAR);
+                HttpEntity courseFormEntity = new UrlEncodedFormEntity(courseParams, "UTF-8");
+                coursePost.setEntity(courseFormEntity);
+
+                HttpResponse courseResponse = httpClient.execute(coursePost, context);
+                HttpEntity courseEntity = courseResponse.getEntity();
+                String courseHtml = EntityUtils.toString(courseEntity);
+
+                Document courseDoc = Jsoup.parse(courseHtml);
+                Elements courseOptions = courseDoc.select("select[name=drpCourse] option");
+
+                for (Element courseOption : courseOptions) {
+                    String courseName = courseOption.text();
+                    String courseValue = courseOption.attr("value");
+                    if (!courseName.isEmpty() && !courseName.equals("Chọn học phần để hiển thị các lớp học")) {
+                        if (!validCourseName.contains(courseName.substring(0, courseName.indexOf("(")).trim())){
+                            continue;
+                        }
+                        // Prepare the parameters to submit to view course classes
+                        List<NameValuePair> classParams = new ArrayList<>();
+                        classParams.add(new BasicNameValuePair("drpCourse", courseValue));
+                        classParams.add(new BasicNameValuePair("drpWeekDay", "0")); // Example value
+                        classParams.add(new BasicNameValuePair("btnViewCourseClass", "Hiển thị lớp")); // Add button value here
+
+                        Elements classHiddenInputs = courseDoc.select("input[type=hidden]");
+                        for (Element input : classHiddenInputs) {
+                            classParams.add(new BasicNameValuePair(input.attr("name"), input.attr("value")));
+                        }
+
+                        HttpPost classPost = new HttpPost(STUDENT_VIRTUAL_CALENDAR);
+                        HttpEntity classFormEntity = new UrlEncodedFormEntity(classParams);
+                        classPost.setEntity(classFormEntity);
+
+                        HttpResponse classResponse = httpClient.execute(classPost, context);
+                        HttpEntity classEntity = classResponse.getEntity();
+                        String classHtml = EntityUtils.toString(classEntity);
+
+                        Document classDoc = Jsoup.parse(classHtml);
+                        Elements classRows = classDoc.select("#gridRegistration tr.cssListItem, #gridRegistration tr.cssListAlternativeItem");
+
+                        for (Element row : classRows) {
+                            String className = row.select("td").get(2).text(); // Class name
+                            String coursePart = row.select("td").get(3).text(); // Course part
+                            String baseTime = row.select("td").get(4).text(); // Time
+                            String time = row.select("td").get(4).text(); // Time
+                            String location = row.select("td").get(5).text(); // Location
+                            String lecturer = row.select("td").get(6).text(); // Lecturer
+                            Element radioButton = row.select("input[type=radio]#rdiSelect").first();
+                            for (String subject : subjects) {
+                                if (className.equals(subject)){
+                                     radioButton.attr("checked", "checked");
+//                                    radioButton.removeAttr("disabled");
+
+                                    List<NameValuePair> submitParams = new ArrayList<>();
+                                    submitParams.add(new BasicNameValuePair("selectedValue", radioButton.attr("value")));
+
+                                    HttpPost submitPost = new HttpPost(STUDENT_VIRTUAL_CALENDAR);
+//                                    HttpEntity submitFormEntity = new UrlEncodedFormEntity(submitParams);
+//                                    submitPost.setEntity(submitFormEntity);
+//
+//                                    HttpResponse submitResponse = httpClient.execute(submitPost, context);
+//                                    HttpEntity submitEntity = submitResponse.getEntity();
+//                                    String submitHtml = EntityUtils.toString(submitEntity);
+                                }
+                            }
+                        }
+                    }
+                }
+                count++;
+            }
+
+
+            return ResponseEntity.ok(Map.of(
+                    "code", "200",
+                    "message", "OK",
+                    "virtual_calendar", courseClassDetails
+            ));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("code", "500", "message", "Error: " + e.getMessage()));
+        }
+    }
+
+
     private Map<String, String> parseVirtualCalendar(String studySchedule) throws ParseException {
         Map<String, String> result = new HashMap<>();
         List<String> startDay = new ArrayList<>();

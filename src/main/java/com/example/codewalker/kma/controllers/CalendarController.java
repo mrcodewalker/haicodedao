@@ -104,7 +104,7 @@ public class CalendarController {
                 startTime = "15:05";
                 endTime = "17:30";
                 break;
-            case "13,14,15":
+            case "13,14,15,16":
                 startTime = "18:00";
                 endTime = "21:00";
                 break;
