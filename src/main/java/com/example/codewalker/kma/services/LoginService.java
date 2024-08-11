@@ -381,12 +381,16 @@ public class LoginService implements ILoginService{
             String username = (String) session.getAttribute("username");
             CookieStore cookieStore = (CookieStore) session.getAttribute("cookieStore");
             HttpClientContext context = (HttpClientContext) session.getAttribute("context");
-            CloseableHttpClient httpClient = (CloseableHttpClient) session.getAttribute("httpClient");
 
             if (username == null || context == null || httpClient == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("code", "401", "message", "User not logged in"));
             }
+
+            CloseableHttpClient httpClient = HttpClients.custom()
+                    .setDefaultCookieStore(cookieStore)
+                    .build();
+            context.setCookieStore(cookieStore);
 
             Set<String> requirement = new HashSet<>();
             requirement.addAll(subjects);
