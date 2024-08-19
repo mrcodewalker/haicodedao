@@ -97,7 +97,7 @@ public class LoginService implements ILoginService{
             Document loginDoc = Jsoup.parse(loginGetHtml);
             Map<String, String> formData = parseInitialFormData(loginDoc);
             formData.put("txtUserName", username.toUpperCase());
-            formData.put("txtPassword", md5(password));
+            formData.put("txtPassword", this.md5(password));
             formData.put("btnSubmit", "Đăng nhập");
 
             List<NameValuePair> urlParameters = new ArrayList<>();

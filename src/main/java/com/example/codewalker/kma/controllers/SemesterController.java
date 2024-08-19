@@ -458,4 +458,12 @@ public class SemesterController {
                         .build()
         );
     }
+    @GetMapping("/top100")
+    public ResponseEntity<?> top100(){
+        return ResponseEntity.ok(
+                SemesterResponse.builder()
+                        .rankingResponses(this.semesterRankingService.getList100Students())
+                        .build()
+        );
+    }
 }

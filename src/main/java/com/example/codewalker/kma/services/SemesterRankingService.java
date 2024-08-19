@@ -13,6 +13,9 @@ import com.example.codewalker.kma.repositories.SemesterRankingRepository;
 import com.example.codewalker.kma.repositories.SemesterRepository;
 import com.example.codewalker.kma.responses.SemesterRankingResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -184,5 +187,16 @@ public class SemesterRankingService implements ISemesterRankingService{
                             .build());
         }
         return list;
+    }
+
+    @Override
+    public List<SemesterRankingResponse> getList100Students() {
+        List<SemesterRankingResponse> result = new ArrayList<>();
+        Pageable pageable = PageRequest.of(0, 100, Sort.by("ranking").ascending());
+        List<Scholarship> list = this.scholarshipRepository.findTop100(pageable);
+        for (Scholarship clone : list){
+            result.add(SemesterRankingResponse.convert(clone));
+        }
+        return result;
     }
 }

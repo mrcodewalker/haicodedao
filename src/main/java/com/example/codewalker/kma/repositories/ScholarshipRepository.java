@@ -1,9 +1,7 @@
 package com.example.codewalker.kma.repositories;
 
-import com.example.codewalker.kma.models.BlockRanking;
-import com.example.codewalker.kma.models.ClassRanking;
-import com.example.codewalker.kma.models.Ranking;
-import com.example.codewalker.kma.models.Scholarship;
+import com.example.codewalker.kma.models.*;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,4 +24,6 @@ public interface ScholarshipRepository extends JpaRepository<Scholarship,Long> {
             " s.student.studentCode LIKE %:mainCode%")
     List<Scholarship> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode);
+    @Query("SELECT s FROM Scholarship s WHERE s.ranking BETWEEN 1 AND 100 ORDER BY s.ranking ASC")
+    List<Scholarship> findTop100(Pageable pageable);
 }

@@ -58,4 +58,5 @@ public class SemesterService implements ISemesterService{
     public List<RankingResponse> getScholarship(String studentCode) {
         return null;
     }
+
 }

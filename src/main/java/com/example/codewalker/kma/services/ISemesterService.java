@@ -12,4 +12,5 @@ public interface ISemesterService {
     void updateRanking();
     void deleteAll();
     List<RankingResponse> getScholarship(String studentCode);
+
 }
