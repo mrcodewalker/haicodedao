@@ -1,5 +1,6 @@
 package com.example.codewalker.kma.services;
 
+import com.example.codewalker.kma.responses.RankingResponse;
 import com.example.codewalker.kma.responses.SemesterRankingResponse;
 import com.example.codewalker.kma.responses.SubjectResponse;
 
@@ -10,4 +11,5 @@ public interface ISemesterRankingService {
     void updateGPA();
     List<SemesterRankingResponse> findRanking(String studentCode);
     List<SubjectResponse> findSubjects(String studentCode);
+    List<SemesterRankingResponse> getList100Students();
 }
