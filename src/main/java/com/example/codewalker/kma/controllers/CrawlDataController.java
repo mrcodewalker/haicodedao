@@ -17,6 +17,6 @@ public class CrawlDataController {
     private final CrawlDataService crawlDataService;
     @PostMapping("/data")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) throws IOException {
-        return this.crawlDataService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        return this.crawlDataService.performActions(loginDTO.getUsername(), loginDTO.getPassword());
     }
 }

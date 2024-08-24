@@ -227,20 +227,20 @@ public class ScoreController {
 
                             studentService.createStudent(student);
 
-//                            if (rows<0||this.listSubjectsName.size()==0) continue;
-//                            if (rows>this.listSubjectsName.size()) continue;
-//                            if (rows==this.listSubjectsName.size()) rows--;
-//                            String cloneSubjectName = this.listSubjectsName.get(rows);
-//
-//                            if (firstWord.equals("1")){
-//                                if (previousSubject.length()==0) {
-//                                    previousSubject = cloneSubjectName;
-//                                } else {
-//                                    if (cloneSubjectName.equalsIgnoreCase(previousSubject)){
-//                                        rows--;
-//                                    }
-//                                }
-//                            }
+                            if (rows<0||this.listSubjectsName.size()==0) continue;
+                            if (rows>this.listSubjectsName.size()) continue;
+                            if (rows==this.listSubjectsName.size()) rows--;
+                            String cloneSubjectName = this.listSubjectsName.get(rows);
+
+                            if (firstWord.equals("1")){
+                                if (previousSubject.length()==0) {
+                                    previousSubject = cloneSubjectName;
+                                } else {
+                                    if (cloneSubjectName.equalsIgnoreCase(previousSubject)){
+                                        rows--;
+                                    }
+                                }
+                            }
                             Subject subject = Subject.builder()
                                     .subjectName(this.listSubjectsName.get(rows))
                                     .id(subjectService.findSubjectByName(this.listSubjectsName.get(rows)).getId())
