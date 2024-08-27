@@ -24,6 +24,6 @@ public interface ScholarshipRepository extends JpaRepository<Scholarship,Long> {
             " s.student.studentCode LIKE %:mainCode%")
     List<Scholarship> findTopRankingsByStudentCodes(
             @Param("mainCode") String mainCode);
-    @Query("SELECT s FROM Scholarship s WHERE s.ranking BETWEEN 1 AND 100 ORDER BY s.ranking ASC")
+    @Query("SELECT s FROM Scholarship s WHERE s.ranking BETWEEN 1 AND 100 ORDER BY s.ranking ASC, s.gpa DESC")
     List<Scholarship> findTop100(Pageable pageable);
 }
