@@ -142,7 +142,7 @@ public class ScoreController {
                 this.specialCase.add(Pair.of(entry.getKey(), entry.getValue()));
             }
         }
-        System.out.println(this.specialCase);
+//        System.out.println(this.specialCase);
         boolean passedSubjects = false;
         collectAllSubjects(file.getPath());
         String previousLine = "";
@@ -214,12 +214,18 @@ public class ScoreController {
                         } else continue;
                         if (scoreFirst>=0&&scoreSecond>=0&&scoreFinal>=0&&scoreOverRall>=0) {
 //
+                            if (studentClass.contains("0")){
+                                String clone[] = studentClass.split("0");
+                                studentClass = clone[0].trim()+clone[1].trim();
+                            }
                             Student student = Student.builder()
                                     .studentClass(studentClass)
                                     .studentCode(studentCode)
 //                                        .studentId(studentService.findByStudentCode(studentCode).getStudentId())
                                     .studentName(studentName)
                                     .build();
+
+//                            Student student = this.studentService.findByStudentCode(studentCode);
 
                             if (studentService.existByStudentCode(studentCode)){
                                 student.setStudentId(studentService.findByStudentCode(studentCode).getStudentId());
@@ -249,6 +255,10 @@ public class ScoreController {
 //                            if (student.getStudentCode().equals("CT060331")){
 //                                System.out.println(scoreFinal+" "+subject.getSubjectName());
 //                            }
+                            if (scoreFinal<4){
+                                continue;
+                            }
+                            if (student.getStudentCode().contains("CT060105")) {
                                 Score score = Score.builder()
                                         .scoreFirst(scoreFirst)
                                         .scoreFinal(scoreFinal)
@@ -258,7 +268,9 @@ public class ScoreController {
                                         .student(student)
                                         .subject(subject)
                                         .build();
-                                scoreService.createScore(score);
+                                System.out.println(score);
+//                                scoreService.createScore(score);
+                            }
 //                                System.out.println(score);
 
                         }

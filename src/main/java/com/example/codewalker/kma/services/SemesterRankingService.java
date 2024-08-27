@@ -195,6 +195,10 @@ public class SemesterRankingService implements ISemesterRankingService{
         Pageable pageable = PageRequest.of(0, 100, Sort.by("ranking").ascending());
         List<Scholarship> list = this.scholarshipRepository.findTop100(pageable);
         for (Scholarship clone : list){
+            List<SubjectResponse> subjectResponses = this.findSubjects(clone.getStudent().getStudentCode());
+            if (subjectResponses.size()<=3||clone.getGpa()<3){
+                continue;
+            }
             result.add(SemesterRankingResponse.convert(clone));
         }
         return result;
