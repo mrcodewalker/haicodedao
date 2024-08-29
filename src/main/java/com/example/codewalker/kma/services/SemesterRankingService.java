@@ -95,6 +95,7 @@ public class SemesterRankingService implements ISemesterRankingService{
         for (Student student : studentList) {
             float gpa = 0f;
             int count = 0;
+            int subjects = 0;
 
             List<Semester> scoreList = scoresByStudent.get(student.getStudentCode());
             if (scoreList != null) {
@@ -137,9 +138,27 @@ public class SemesterRankingService implements ISemesterRankingService{
                     }
                     gpa += scoreValue * subject.getSubjectCredits();
                     count += subject.getSubjectCredits();
+                    subjects++;
                 }
             }
-
+            if (!student.getStudentCode().contains("CT08")
+                    && !student.getStudentCode().contains("CT07")
+                    && !student.getStudentCode().contains("CT06")
+                    && !student.getStudentCode().contains("CT05")
+                    && !student.getStudentCode().contains("DT07")
+                    && !student.getStudentCode().contains("DT06")
+                    && !student.getStudentCode().contains("DT05")
+                    && !student.getStudentCode().contains("DT04")
+                    && !student.getStudentCode().contains("AT20")
+                    && !student.getStudentCode().contains("AT19")
+                    && !student.getStudentCode().contains("AT18")
+                    && !student.getStudentCode().contains("AT17")
+            ){
+                continue;
+            }
+            if (subjects<=3){
+                continue;
+            }
             if (count != 0) {
                 float roundedGPA = Math.round((gpa / count) * 100) / 100f;
                 float roundedAsiaGPA = Math.round((gpa / count) * 2.5f * 100) / 100f;
@@ -200,6 +219,45 @@ public class SemesterRankingService implements ISemesterRankingService{
                 continue;
             }
             result.add(SemesterRankingResponse.convert(clone));
+        }
+        return result;
+    }
+
+    @Override
+    public List<SemesterRankingResponse> filterListStudents(String filterCode) {
+        Pageable pageable = PageRequest.of(0, 40);
+        List<SemesterRanking> response = this.semesterRankingRepository.findTopWithMatchingFilterCode(filterCode, pageable);
+        List<SemesterRankingResponse> result = new ArrayList<>();
+        for (SemesterRanking clone : response){
+            Student student = clone.getStudent();
+            int count = 0;
+            List<Semester> list = this.semesterRepository.findByStudentCode(student.getStudentCode());
+            for (Semester auto : list){
+                if (auto.getScoreFinal()<4){
+                    count++;
+                    break;
+                }
+            }
+            if(count==0){
+                result.add(SemesterRankingResponse.builder()
+                                .studentClass(student.getStudentClass())
+                                .studentCode(student.getStudentCode())
+                                .studentName(student.getStudentName())
+                                .ranking(clone.getRanking())
+                                .asiaGpa(clone.getAsiaGpa())
+                                .gpa(clone.getGpa())
+                        .build());
+            }
+        }
+        for (int i=0;i<result.size();i++){
+            result.set(i, SemesterRankingResponse.builder()
+                            .gpa(result.get(i).getGpa())
+                            .asiaGpa(result.get(i).getAsiaGpa())
+                            .ranking(i+1L)
+                            .studentName(result.get(i).getStudentName())
+                            .studentClass(result.get(i).getStudentClass())
+                            .studentCode(result.get(i).getStudentCode())
+                    .build());
         }
         return result;
     }

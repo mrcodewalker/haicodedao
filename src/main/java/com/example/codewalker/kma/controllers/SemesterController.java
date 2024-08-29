@@ -1,5 +1,7 @@
 package com.example.codewalker.kma.controllers;
 
+import com.example.codewalker.kma.dtos.CreateScoreDTO;
+import com.example.codewalker.kma.dtos.SingleStringDTO;
 import com.example.codewalker.kma.models.Semester;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
@@ -37,7 +39,7 @@ public class SemesterController {
     private Integer totalSubjects = 0;
     @PostMapping("/update")
     public ResponseEntity<?> SemesterUpdate() throws Exception{
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot1.pdf");
+        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot2.pdf");
         FileInputStream fileInputStream = new FileInputStream(file);
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         PDDocument pdfDocument = PDDocument.load(fileInputStream);
@@ -46,6 +48,7 @@ public class SemesterController {
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
 
         pdfTextStripper.setStartPage(2);
+        String previousSubject = "";
 
         PDPage firstPage = pdfDocument.getPage(0);
 
@@ -223,6 +226,18 @@ public class SemesterController {
 
                             if (rows<0||this.listSubjectsName.size()==0) continue;
                             if (rows>this.listSubjectsName.size()) continue;
+                            if (rows==this.listSubjectsName.size()) rows--;
+                            String cloneSubjectName = this.listSubjectsName.get(rows);
+
+                            if (firstWord.equals("1")){
+                                if (previousSubject.length()==0) {
+                                    previousSubject = cloneSubjectName;
+                                } else {
+                                    if (cloneSubjectName.equalsIgnoreCase(previousSubject)){
+                                        rows--;
+                                    }
+                                }
+                            }
                             Subject subject = Subject.builder()
                                     .subjectName(this.listSubjectsName.get(rows))
                                     .id(subjectService.findSubjectByName(this.listSubjectsName.get(rows)).getId())
@@ -464,6 +479,18 @@ public class SemesterController {
                 SemesterResponse.builder()
                         .rankingResponses(this.semesterRankingService.getList100Students())
                         .build()
+        );
+    }
+    @PostMapping("/filter/scholarship")
+    public ResponseEntity<?> filterScholarship(@RequestBody SingleStringDTO filterString){
+        return ResponseEntity.ok(
+                this.semesterRankingService.filterListStudents(filterString.getFilterCode())
+        );
+    }
+    @PostMapping("/create/score")
+    public ResponseEntity<?> createNewScore(@RequestBody CreateScoreDTO createScoreDTO){
+        return ResponseEntity.ok(
+                this.semesterService.createNewScore(createScoreDTO)
         );
     }
 }

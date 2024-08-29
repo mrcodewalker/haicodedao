@@ -1,5 +1,6 @@
 package com.example.codewalker.kma.services;
 
+import com.example.codewalker.kma.dtos.CreateScoreDTO;
 import com.example.codewalker.kma.models.Semester;
 import com.example.codewalker.kma.responses.RankingResponse;
 
@@ -12,5 +13,5 @@ public interface ISemesterService {
     void updateRanking();
     void deleteAll();
     List<RankingResponse> getScholarship(String studentCode);
-
+    List<Semester> createNewScore(CreateScoreDTO scoreDTO);
 }

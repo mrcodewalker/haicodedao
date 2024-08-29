@@ -46,6 +46,7 @@ public class RankingService implements IRankingService {
         for (Student student : studentList) {
             float gpa = 0f;
             int count = 0;
+            int subjects = 0;
 
             List<Score> scoreList = scoresByStudent.get(student.getStudentCode());
             if (scoreList != null) {
@@ -88,6 +89,7 @@ public class RankingService implements IRankingService {
                     }
                     gpa += scoreValue * subject.getSubjectCredits();
                     count += subject.getSubjectCredits();
+                    subjects++;
                 }
             }
             if (!student.getStudentCode().contains("CT08")
@@ -103,6 +105,9 @@ public class RankingService implements IRankingService {
                     && !student.getStudentCode().contains("AT18")
                     && !student.getStudentCode().contains("AT17")
             ){
+                continue;
+            }
+            if (subjects<=3){
                 continue;
             }
             if (count != 0) {
