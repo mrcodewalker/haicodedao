@@ -1,8 +1,10 @@
 package com.example.codewalker.kma.services;
 
+import com.example.codewalker.kma.dtos.CreateScoreDTO;
 import com.example.codewalker.kma.models.Semester;
 import com.example.codewalker.kma.repositories.SemesterRepository;
 import com.example.codewalker.kma.repositories.StudentRepository;
+import com.example.codewalker.kma.repositories.SubjectRepository;
 import com.example.codewalker.kma.responses.RankingResponse;
 import com.example.codewalker.kma.models.*;
 import jakarta.persistence.EntityManager;
@@ -10,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,6 +21,7 @@ public class SemesterService implements ISemesterService{
     private final SemesterRepository semesterRepository;
     private final EntityManager entityManager;
     private final StudentRepository studentRepository;
+    private final SubjectRepository subjectRepository;
 
     @Override
     public Semester createSemester(Semester semester) {
@@ -57,6 +61,27 @@ public class SemesterService implements ISemesterService{
     @Override
     public List<RankingResponse> getScholarship(String studentCode) {
         return null;
+    }
+
+    @Override
+    public List<Semester> createNewScore(CreateScoreDTO scoreDTO) {
+        List<Semester> scores = new ArrayList<>();
+        for (String index: scoreDTO.getListStudent()){
+            Student student = this.studentRepository.findByStudentCode(index.toUpperCase());
+            scores.add(
+                    Semester.builder()
+                            .subject(this.subjectRepository.findFirstBySubjectName(scoreDTO.getSubjectName()))
+                            .student(student)
+                            .scoreFirst(scoreDTO.getScoreFirst())
+                            .scoreSecond(scoreDTO.getScoreSecond())
+                            .scoreText(scoreDTO.getScoreText())
+                            .scoreOverall(scoreDTO.getScoreOverall())
+                            .scoreFinal(scoreDTO.getScoreFinal())
+                            .build()
+            );
+        }
+//        System.out.println(scores);
+        return this.semesterRepository.saveAll(scores);
     }
 
 }

@@ -12,4 +12,5 @@ public interface ISemesterRankingService {
     List<SemesterRankingResponse> findRanking(String studentCode);
     List<SubjectResponse> findSubjects(String studentCode);
     List<SemesterRankingResponse> getList100Students();
+    List<SemesterRankingResponse> filterListStudents(String filterCode);
 }

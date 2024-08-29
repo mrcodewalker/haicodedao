@@ -39,7 +39,7 @@ public class ScoreController {
 
     @PostMapping("/score")
     public ResponseEntity<?> ReadPDFFile() throws Exception {
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2021_2022_hk2_dot2_tl.pdf");
+        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot2.pdf");
         FileInputStream fileInputStream = new FileInputStream(file);
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
@@ -255,10 +255,10 @@ public class ScoreController {
 //                            if (student.getStudentCode().equals("CT060331")){
 //                                System.out.println(scoreFinal+" "+subject.getSubjectName());
 //                            }
-                            if (scoreFinal<4){
-                                continue;
-                            }
-                            if (student.getStudentCode().contains("CT060105")) {
+//                            if (scoreFinal<4){
+//                                continue;
+//                            }
+                            if (student.getStudentCode().equalsIgnoreCase("AT190224")) {
                                 Score score = Score.builder()
                                         .scoreFirst(scoreFirst)
                                         .scoreFinal(scoreFinal)
