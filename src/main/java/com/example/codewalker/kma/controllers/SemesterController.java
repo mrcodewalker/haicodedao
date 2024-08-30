@@ -2,6 +2,7 @@ package com.example.codewalker.kma.controllers;
 
 import com.example.codewalker.kma.dtos.CreateScoreDTO;
 import com.example.codewalker.kma.dtos.SingleStringDTO;
+import com.example.codewalker.kma.dtos.StudentFailedDTO;
 import com.example.codewalker.kma.models.Semester;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
@@ -30,6 +31,7 @@ public class SemesterController {
     private final SemesterService semesterService;
     private final ScoreService scoreService;
     private final SubjectService subjectService;
+    private final StudentFailedService studentFailedService;
     private final StudentService studentService;
     private final SubjectRepository subjectRepository;
     private final SemesterRankingService semesterRankingService;
@@ -163,7 +165,7 @@ public class SemesterController {
                             rows++;
                         }
                         String data[] = secondWord.split(" ");
-                        if (data[0].equals("0")) continue;
+//                        if (data[0].equals("0")) continue;
                         if (data.length<8) continue;
                         String studentCode = data[1];
                         String studentName = "";
@@ -438,6 +440,132 @@ public class SemesterController {
 //                cnt++;
 //            }
         }
+    }
+    @PostMapping("/failed/student")
+    public ResponseEntity<?> createFailedStudents() throws Exception{
+        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot2.pdf");
+        FileInputStream fileInputStream = new FileInputStream(file);
+        Map<String, Integer> allSubjects = new LinkedHashMap<>();
+        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        System.out.println(pdfDocument.getPages().getCount());
+
+        PDFTextStripper pdfTextStripper = new PDFTextStripper();
+
+        pdfTextStripper.setStartPage(2);
+        String previousSubject = "";
+
+        PDPage firstPage = pdfDocument.getPage(0);
+
+        String docText = pdfTextStripper.getText(pdfDocument);
+
+        Map<String, String> subjects = new LinkedHashMap<>();
+        Set<String> idSubjects = new HashSet<>();
+// Tách văn bản thành các dòng
+        String[] lines = docText.split("\\r?\\n");
+        int rows = -1;
+        int count = 0;
+        for (String line : lines) {
+            int spaceIndex = line.indexOf(" ");
+
+            if (spaceIndex != -1) {
+                String firstWord = line.substring(0, spaceIndex);
+
+                String secondWord = line.substring(spaceIndex + 1);
+
+                if (firstWord.length()<=2&&!firstWord.isEmpty()&&firstWord.matches("[1-9][0-9]?")){
+                    if (!idSubjects.contains(firstWord)) {
+                        idSubjects.add(firstWord);
+                        if (secondWord.contains("Học lại")){
+                            int index = secondWord.indexOf("Học lại");
+                            if (index >= 0) {
+                                secondWord = secondWord.substring(0, index).trim();
+                            }
+                        }
+                        if (secondWord.contains("CT")||secondWord.contains("DT")||secondWord.contains("AT")
+                                || secondWord.contains("CNTT") || secondWord.contains("ĐTVT") || secondWord.contains("ATTT")
+                                || secondWord.contains("(")){
+                            int indexCT = secondWord.indexOf("CT");
+                            int indexDT = secondWord.indexOf("DT");
+                            int indexAT = secondWord.indexOf("AT");
+                            int indexCNTT = secondWord.indexOf("CNTT");
+                            int indexATTT = secondWord.indexOf("ATTT");
+                            int indexDTVT = secondWord.indexOf("ĐTVT");
+                            int indexCharacter = secondWord.indexOf("(");
+
+                            int minIndex = -1;
+                            if (indexCT >= 0 || indexDT >= 0 || indexAT >= 0 || indexCNTT >=0 || indexATTT >=0 || indexDTVT>=0 || indexCharacter >=0) {
+                                minIndex = Math.min(indexCT >= 0 ? indexCT : Integer.MAX_VALUE,
+                                        Math.min(indexDT >= 0 ? indexDT : Integer.MAX_VALUE,
+                                                Math.min(indexAT >= 0 ? indexAT : Integer.MAX_VALUE,
+                                                        Math.min(indexCNTT >= 0 ? indexCNTT-1 : Integer.MAX_VALUE,
+                                                                Math.min(indexATTT >=0 ? indexATTT-1 : Integer.MAX_VALUE,
+                                                                        Math.min(indexDTVT >=0 ? indexDTVT-1 : Integer.MAX_VALUE,
+                                                                                indexCharacter >=0 ? indexCharacter : Integer.MAX_VALUE))))));
+                            }
+
+                            if (minIndex >= 0) {
+                                secondWord = secondWord.substring(0, minIndex).trim();
+                            }
+                        }
+                        if (allSubjects.get(secondWord.trim())!=null&&allSubjects.get(secondWord.trim())>=1) {
+                            allSubjects.put(secondWord.trim(), allSubjects.get(secondWord.trim()) + 1);
+                            totalSubjects++;
+                        } else {
+                            if (allSubjects.get(secondWord.trim())==null||allSubjects.get(secondWord.trim())==0){
+                                allSubjects.put(secondWord.trim(),1);
+                                totalSubjects++;
+                            }
+                        }
+                        if (secondWord.contains("HTTT")){
+                            secondWord = secondWord.substring(0,secondWord.indexOf("HTTT")).trim()+" hệ thống thông tin";
+                            secondWord.trim();
+                        }
+                        if (secondWord.contains("&")) {
+                            secondWord = secondWord.replace("&", "và");
+                        }
+                        subjects.put(firstWord, secondWord.trim());
+                    } else {
+                        break;
+                    };
+                }
+            }
+
+        }
+        for (Map.Entry<String, String> entry: subjects.entrySet()){ // All Subjects
+            if (!this.checkContainsSubject(entry.getValue())){
+                this.subjectService.createSubject(Subject.builder()
+                        .subjectName(entry.getValue())
+                        .build());
+//                System.out.println(entry.getValue());
+            }
+        }
+        for (Map.Entry<String, Integer> entry: allSubjects.entrySet()){
+            if (entry.getValue()>1){
+                this.specialCase.add(Pair.of(entry.getKey(), entry.getValue()));
+            }
+        }
+        System.out.println(this.specialCase);
+        boolean passedSubjects = false;
+        collectAllSubjects(file.getPath());
+
+        for (String line : lines) {
+            int spaceIndex = line.indexOf(" ");
+
+            if (spaceIndex != -1) {
+                String firstWord = line.substring(0, spaceIndex);
+
+                String secondWord = line.substring(spaceIndex + 1);
+                String data[] = secondWord.split(" ");
+                if (secondWord.contains("N100")||secondWord.contains("N25")||secondWord.contains("TKD")){
+                    this.studentFailedService.createStudent(StudentFailedDTO.builder()
+                                    .studentCode(data[1])
+                            .build());
+                }
+                }
+        }
+
+        pdfDocument.close();
+        return null;
     }
     boolean checkContainsSubject(String subjectName){
         List<Subject> subjectsData = subjectRepository.findAll();
