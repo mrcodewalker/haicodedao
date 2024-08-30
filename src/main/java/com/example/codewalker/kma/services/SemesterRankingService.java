@@ -29,6 +29,7 @@ public class SemesterRankingService implements ISemesterRankingService{
     private final StudentRepository studentRepository;
     private final SemesterRepository semesterRepository;
     private final ScholarshipRepository scholarshipRepository;
+    private final StudentFailedService studentFailedService;
     private final SubjectService subjectService;
     private List<SemesterRanking> cachedRankings;
 //    @PostConstruct
@@ -231,6 +232,7 @@ public class SemesterRankingService implements ISemesterRankingService{
         for (SemesterRanking clone : response){
             Student student = clone.getStudent();
             int count = 0;
+            if (this.studentFailedService.findByStudentCode(clone.getStudent().getStudentCode()).size()>0) continue;
             List<Semester> list = this.semesterRepository.findByStudentCode(student.getStudentCode());
             for (Semester auto : list){
                 if (auto.getScoreFinal()<4){
