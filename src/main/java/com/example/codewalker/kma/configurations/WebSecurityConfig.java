@@ -380,23 +380,6 @@ public class WebSecurityConfig {
             }
         };
     }
-    public static SecretKey generateKey() throws Exception {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
-        keyGenerator.init(128); // Sử dụng độ dài khóa 128 bit
-        return keyGenerator.generateKey();
-    }
-    public static String encrypt(String data, SecretKey key) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        byte[] encryptedBytes = cipher.doFinal(data.getBytes());
-        return Base64.getEncoder().encodeToString(encryptedBytes);
-    }
-    public static String decrypt(String encryptedData, SecretKey key) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
-        return new String(decryptedBytes);
-    }
     public static String convertToUsername(String name) {
         if (name == null || name.isEmpty()) {
             return "";
