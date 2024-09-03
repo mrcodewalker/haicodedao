@@ -115,7 +115,6 @@ public class WebSecurityConfig {
         http.oauth2Login(oauth2 ->
                 oauth2
                         .successHandler(authenticationSuccessHandler())
-                        .clientRegistrationRepository(clientRegistrationRepository())
         );
         http.cors(Customizer.withDefaults());
 //                .addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class); // Thêm filter tùy chỉnh của bạn
@@ -385,10 +384,6 @@ public class WebSecurityConfig {
                 response.sendRedirect(redirectUrl);
             }
         };
-    }
-    @Bean
-    public ClientRegistrationRepository clientRegistrationRepository() {
-        return new InMemoryClientRegistrationRepository();
     }
     public static String convertToUsername(String name) {
         if (name == null || name.isEmpty()) {
