@@ -43,7 +43,7 @@ spring:
               - openid
               - profile
               - email
-            redirect-uri: ${BASE_URL}/login/oauth2/code/google
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
             authorization-grant-type: authorization_code
           facebook:
             client-id: ${FACEBOOK_CLIENT_ID}
@@ -51,14 +51,14 @@ spring:
             scope:
               - public_profile
               - email
-            redirect-uri: ${BASE_URL}/login/oauth2/code/facebook
+            redirect-uri: "{baseUrl}/login/oauth2/code/facebook"
             authorization-grant-type: authorization_code
           github:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
             scope:
               - user:email
-            redirect-uri: ${BASE_URL}/login/oauth2/code/github
+            redirect-uri: "{baseUrl}/login/oauth2/code/github"
             authorization-grant-type: authorization_code
         provider:
           google:
@@ -85,10 +85,10 @@ spring:
     cors:
       allowed-origins: http://localhost:4200
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:4306/codewalker}
+    url: ${SPRING_DATASOURCE_URL}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:123456789}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     show-sql: true
     hibernate:
@@ -99,10 +99,11 @@ spring:
         format_sql: true
 
 api:
-  prefix: ${API_PREFIX}
+  prefix: api/v1
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
+
 
 
 
