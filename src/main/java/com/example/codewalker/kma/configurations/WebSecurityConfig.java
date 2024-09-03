@@ -38,6 +38,8 @@ import org.springframework.security.config.annotation.web.configurers.oauth2.cli
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
@@ -110,7 +112,11 @@ public class WebSecurityConfig {
 //                .sessionManagement(sessionManagement ->
 //                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Không tạo session
 //                );
-        http.oauth2Login(oauth2 -> oauth2.successHandler(authenticationSuccessHandler()));
+        http.oauth2Login(oauth2 ->
+                oauth2
+                        .successHandler(authenticationSuccessHandler())
+                        .clientRegistrationRepository(clientRegistrationRepository())
+        );
         http.cors(Customizer.withDefaults());
 //                .addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class); // Thêm filter tùy chỉnh của bạn
         http.cors(new Customizer<CorsConfigurer<HttpSecurity>>() {
@@ -379,6 +385,10 @@ public class WebSecurityConfig {
                 response.sendRedirect(redirectUrl);
             }
         };
+    }
+    @Bean
+    public ClientRegistrationRepository clientRegistrationRepository() {
+        return new InMemoryClientRegistrationRepository();
     }
     public static String convertToUsername(String name) {
         if (name == null || name.isEmpty()) {
