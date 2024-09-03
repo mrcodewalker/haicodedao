@@ -28,52 +28,10 @@
 #  prefix: api/v1
 
 
-server:
-  port: 8080
-
 spring:
-  http:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
-  mvc:
-    cors:
-      allowed-origins: http://localhost:4200
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:4306/codewalker}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:123456789}
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
+  config:
+    location: file:/etc/secrets/application.yml
 
-api:
-  prefix: api/v1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#jwt:
-#  secret: Z54uiPhveohL/uORp8a8rHhu0qalR4Mj+aIOz5ZA5zY=
-#  expiration: 2592000 # 30 days
 
 #server:
 #  port: 8080
