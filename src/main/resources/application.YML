@@ -101,7 +101,7 @@ spring:
 api:
   prefix: api/v1
 jwt:
-  secret: Z54uiPhveohL/uORp8a8rHhu0qalR4Mj+aIOz5ZA5zY=
+  secret: ${JWT_SECRET}
   expiration: 864000000
 encrypt:
   secret: javax.crypto.spec.SecretKeySpec@fffe80ba
