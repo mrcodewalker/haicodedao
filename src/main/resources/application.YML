@@ -103,10 +103,6 @@ api:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
-encrypt:
-  secret: javax.crypto.spec.SecretKeySpec@fffe80ba
-
-
 
 
 
