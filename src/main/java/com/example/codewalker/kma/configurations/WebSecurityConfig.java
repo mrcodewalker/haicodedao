@@ -369,12 +369,12 @@ public class WebSecurityConfig {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             String formattedDate = today.format(formatter);
             if (passwordEncoder.encode(formattedDate).equals(temp.getPassword())) {
-                String redirectUrl = String.format("http://localhost:4200/login/forum?username=%s&password=%s&token=%s&userId=%d&type=%s",
+                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&password=%s&token=%s&userId=%d&type=%s",
                         temp.getUsername(), formattedDate, URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type);
                 response.sendRedirect(redirectUrl);
             }
             else {
-                String redirectUrl = String.format("http://localhost:4200/login/forum?token=%s&userId=%d&type=%s",
+                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?token=%s&userId=%d&type=%s",
                         URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type);
                 response.sendRedirect(redirectUrl);
             }
