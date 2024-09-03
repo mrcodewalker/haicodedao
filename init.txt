@@ -1,0 +1,42 @@
+CREATE TABLE posts (
+    post_id INT AUTO_INCREMENT PRIMARY KEY,
+    content NVARCHAR(255) DEFAULT '',
+    author VARCHAR(100) NOT NULL,
+    image_url VARCHAR(255),  -- Thêm cột này để lưu URL của ảnh
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+CREATE TABLE comments (
+    comment_id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT,
+    content NVARCHAR(255) NOT NULL,
+    author VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE
+);
+CREATE TABLE likes (
+    like_id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT,
+    user_id VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE
+);
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255),
+    password VARCHAR(255),  -- Có thể NULL nếu đăng nhập bằng OAuth2
+    provider_name NVARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    CHECK (LENGTH(password) >= 8 OR password IS NULL)
+);
+CREATE TABLE providers (
+    provider_id INT AUTO_INCREMENT PRIMARY KEY,
+    provider_name NVARCHAR(50) DEFAULT ''
+}
+CREATE TABLE roles(
+	role_id INT PRIMARY KEY AUTO_INCREMENT,
+	role_name VARCHAR(255) DEFAULT ''
+)
+
