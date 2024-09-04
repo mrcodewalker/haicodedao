@@ -13,6 +13,10 @@ WORKDIR /app
 # Copy the built artifact from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
+# Copy the .env file to the container
+# Make sure SYSTEM32.env is in the same directory as your Dockerfile or specify the correct path
+COPY SYSTEM32.env /etc/secrets/SYSTEM32.env
+
 # Expose the port that the application runs on
 EXPOSE 8080
 
@@ -20,7 +24,7 @@ EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
 # Example: Docker run command with environment variables
-# docker run -p 9091:9091 -e SPRING_DATASOURCE_URL=jdbc:mysql://monorail.proxy.rlwy.net:55842/railway \
+# docker run -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:mysql://monorail.proxy.rlwy.net:55842/railway \
 #                        -e SPRING_DATASOURCE_USERNAME=root \
 #                        -e SPRING_DATASOURCE_PASSWORD=viCcTTMFvChjFidsLYaBdRIpEubzzCFC \
 #                        codewalker.kma:latest
