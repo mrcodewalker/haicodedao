@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    image: codewalker.kma:latest
+    build:
+      context: .
+    env_file:
+      - SYSTEM32.env
+    ports:
+      - "8080:8080"
