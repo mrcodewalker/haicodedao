@@ -11,7 +11,7 @@ public class Application {
 		// Tải biến môi trường từ file .env
 		Dotenv dotenv = Dotenv.configure()
 				.directory("/etc/secrets")
-				.filename("SYSTEM32.env")
+				.filename("SYSTEM32")
 				.load();
 
 		System.setProperty("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID"));
