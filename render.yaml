@@ -7,5 +7,27 @@ services:
     envVars:
       - key: JAVA_OPTS
         value: "-Xms512m -Xmx1024m"
+      - key: GOOGLE_CLIENT_ID
+        value: ${GOOGLE_CLIENT_ID}
+      - key: GOOGLE_CLIENT_SECRET
+        value: ${GOOGLE_CLIENT_SECRET}
+      - key: FACEBOOK_CLIENT_ID
+        value: ${FACEBOOK_CLIENT_ID}
+      - key: FACEBOOK_CLIENT_SECRET
+        value: ${FACEBOOK_CLIENT_SECRET}
+      - key: GITHUB_CLIENT_ID
+        value: ${GITHUB_CLIENT_ID}
+      - key: GITHUB_CLIENT_SECRET
+        value: ${GITHUB_CLIENT_SECRET}
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+      - key: JWT_EXPIRATION
+        value: ${JWT_EXPIRATION}
+      - key: SPRING_DATASOURCE_URL
+        value: ${SPRING_DATASOURCE_URL}
+      - key: SPRING_DATASOURCE_USERNAME
+        value: ${SPRING_DATASOURCE_USERNAME}
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: ${SPRING_DATASOURCE_PASSWORD}
     autoDeploy: true
     branch: main

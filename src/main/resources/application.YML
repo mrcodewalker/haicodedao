@@ -46,16 +46,16 @@ spring:
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
             authorization-grant-type: authorization_code
           facebook:
-            client-id: ${FACEBOOK_CLIENT_ID}
-            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            clientId: ${FACEBOOK_CLIENT_ID}
+            clientSecret: ${FACEBOOK_CLIENT_SECRET}
             scope:
               - public_profile
               - email
             redirect-uri: "{baseUrl}/login/oauth2/code/facebook"
             authorization-grant-type: authorization_code
           github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
+            clientId: ${GITHUB_CLIENT_ID}
+            clientSecret: ${GITHUB_CLIENT_SECRET}
             scope:
               - user:email
             redirect-uri: "{baseUrl}/login/oauth2/code/github"
@@ -103,6 +103,7 @@ api:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
+
 
 
 
