@@ -21,14 +21,16 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-@RequiredArgsConstructor
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
-    @Value("/${api.prefix}")
+    @Value("${api.prefix}")
     private String apiPrefix;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
-
+    public JwtTokenFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.userDetailsService = userDetailsService;
+    }
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
