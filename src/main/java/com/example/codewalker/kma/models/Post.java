@@ -31,6 +31,12 @@ public class Post {
 
     @Column(name = "image_url")
     private String imageUrl;
+    @Column(name = "title")
+    private String title;
+    @Column(name = "views")
+    private Long views;
+    @Column(name = "is_active")
+    private Long isActive;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

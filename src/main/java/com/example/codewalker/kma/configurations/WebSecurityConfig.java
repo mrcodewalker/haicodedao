@@ -136,7 +136,7 @@ public class WebSecurityConfig {
     @Bean
     public AuthenticationFailureHandler authenticationFailureHandler() {
         return (request, response, exception) -> {
-            response.sendRedirect("http://localhost:4200/login?error=true");
+            response.sendRedirect("https://kma-legend.onrender.com/login?error=true");
         };
     }
 
@@ -186,6 +186,7 @@ public class WebSecurityConfig {
                                 try {
                                     this.createUser(UserDTO.builder()
                                             .username(username)
+                                                    .avatar(picture)
                                             .providerName("Google")
                                             .email(email)
                                             .password(formattedDate)
@@ -244,6 +245,7 @@ public class WebSecurityConfig {
                                 try {
                                     this.createUser(UserDTO.builder()
                                             .username(username)
+                                                    .avatar("")
                                             .providerName("Facebook")
                                             .email(email)
                                             .password(formattedDate)
@@ -310,6 +312,7 @@ public class WebSecurityConfig {
                                     try {
                                         this.createUser(UserDTO.builder()
                                                 .username(username)
+                                                        .avatar(avatarUrl)
                                                 .providerName("Facebook")
                                                 .email(email)
                                                 .password(formattedDate)
@@ -347,6 +350,7 @@ public class WebSecurityConfig {
                                             this.createUser(UserDTO.builder()
                                                     .username(username)
                                                     .providerName("Github")
+                                                            .avatar(avatarUrl)
                                                             .githubId(idGithub)
                                                     .email(email)
                                                     .password(formattedDate)
@@ -379,8 +383,8 @@ public class WebSecurityConfig {
                 response.sendRedirect(redirectUrl);
             }
             else {
-                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?token=%s&userId=%d&type=%s",
-                        URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type);
+                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&token=%s&userId=%d&type=%s",
+                        temp.getUsername(), URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type);
                 response.sendRedirect(redirectUrl);
             }
         };
@@ -421,8 +425,13 @@ public class WebSecurityConfig {
         } else {
             githubId = user.getGithubId();
         }
+        String avatar = "https://img.icons8.com/?size=100&id=aVI7R6wBB2ge&format=png&color=000000";
+        if (user.getAvatar().length()>3){
+            avatar = user.getAvatar();
+        }
         User clone =  User.builder()
                 .email(email)
+                .avatar(avatar)
                 .role(Role.builder()
                         .roleId(2L)
                         .roleName(Role.USER)

@@ -31,6 +31,8 @@ public class Comment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author", referencedColumnName = "user_id")
     private User author;
+    @Column(name = "is_active")
+    private Long isActive;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

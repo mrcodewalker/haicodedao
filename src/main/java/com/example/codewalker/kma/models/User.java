@@ -50,6 +50,8 @@ public class User implements UserDetails {
     private boolean isActive;
     @Column(name = "github_id")
     private String githubId;
+    @Column(name = "avatar")
+    private String avatar;
     @PrePersist
     protected void onCreate(){
         createdAt = LocalDateTime.now();

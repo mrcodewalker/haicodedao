@@ -9,13 +9,15 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TokenResponse {
-    @JsonProperty("token")
-    private String token;
-    @JsonProperty("status")
-    private String status;
-    @JsonProperty("id")
-    private String id;
+public class ProfileResponse {
     @JsonProperty("username")
     private String username;
+    @JsonProperty("email")
+    private String email;
+
+    @JsonProperty("provider_name")
+    private String providerName;
+
+    @JsonProperty("avatar")
+    private String avatar;
 }

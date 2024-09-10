@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class PostResponse {
+    @JsonProperty("title")
+    private String title;
     @JsonProperty("post_id")
     private Long postId;
 
@@ -24,6 +26,10 @@ public class PostResponse {
 
     @JsonProperty("image_url")
     private String imageUrl;
+    @JsonProperty("replies")
+    private String replies;
+    @JsonProperty("views")
+    private Long views;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 }
