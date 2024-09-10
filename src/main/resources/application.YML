@@ -99,7 +99,7 @@ spring:
         format_sql: true
 
 api:
-  prefix: api/v1
+  prefix: /api/v1
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000

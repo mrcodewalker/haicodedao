@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor
-public class JwtTokenProvider {
+public class JwtTokenProvider {g
 
     @Value("${jwt.secret}")
     private String jwtSecret;
