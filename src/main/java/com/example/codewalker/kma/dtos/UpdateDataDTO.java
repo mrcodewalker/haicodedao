@@ -11,16 +11,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 @Builder
-public class PostDTO {
-    @JsonProperty("title")
-    private String title;
-
+public class UpdateDataDTO {
+    @JsonProperty("id")
+    private Long id;
     @JsonProperty("content")
     private String content;
-
-    @JsonProperty("author_id")
-    private String authorId;
-
-    @JsonProperty("imageUrl")
-    private String imageUrl;
 }

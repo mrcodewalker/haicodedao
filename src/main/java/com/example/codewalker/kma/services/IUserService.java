@@ -3,7 +3,9 @@ package com.example.codewalker.kma.services;
 import com.example.codewalker.kma.dtos.UserDTO;
 import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.models.User;
+import com.example.codewalker.kma.responses.ProfileResponse;
 import com.example.codewalker.kma.responses.RegisterUserResponse;
+import com.example.codewalker.kma.responses.StatusResponse;
 import com.example.codewalker.kma.responses.TokenResponse;
 
 import java.util.List;
@@ -34,4 +36,7 @@ public interface IUserService {
     boolean userExistsById(Long id);
 
     User getUserByEmail(String email) throws DataNotFoundException;
+    ProfileResponse getUserProfile(String id, String token) throws DataNotFoundException;
+
+    StatusResponse updateAvatar(String id, String avatar, String token) throws DataNotFoundException;
 }

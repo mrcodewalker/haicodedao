@@ -29,4 +29,6 @@ public class UserDTO {
     private String providerName;
     @JsonProperty("github_id")
     private String githubId;
+    @JsonProperty("avatar")
+    private String avatar;
 }

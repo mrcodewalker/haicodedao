@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -23,6 +24,7 @@ import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor
+@Service
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
@@ -66,7 +68,16 @@ public class JwtTokenProvider {
         final Claims claims = this.extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+        return claims.getSubject();
+    }
+    public boolean checkExtractToken(String token, String username){
+        if (this.getUsernameFromToken(token).equalsIgnoreCase(username)){
+            return true;
+        }
+        return false;
+    }
     // Lấy thông tin từ token
     public Claims getClaims(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
