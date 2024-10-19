@@ -30,7 +30,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CommentService implements ICommentService{
-    private String jwtSecret = "Z54uiPhveohL/uORp8a8rHhu0qalR4Mj+aIOz5ZA5zY=";
+    @Value("${jwt.secret}")
+    private String jwtSecret;
     private final CommentRepository commentRepository;
     private final UserService userService;
     private final PostService postService;

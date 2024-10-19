@@ -16,29 +16,44 @@ import com.example.codewalker.kma.responses.RegisterUserResponse;
 import com.example.codewalker.kma.services.EmailService;
 import com.example.codewalker.kma.services.FacebookService;
 import com.example.codewalker.kma.services.GithubService;
+import com.example.codewalker.kma.services.UserService;
+import com.nimbusds.jose.Algorithm;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.internal.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
@@ -65,13 +80,13 @@ public class WebSecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final GithubService githubService;
 
-    private String apiPrefix = "api/v1";
+    @Value("${api.prefix}")
+    private String apiPrefix;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults()) // Ensure this is added
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
@@ -79,23 +94,16 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/v1/calendar/**").permitAll()
                                 .requestMatchers("/api/v1/crawl/**").permitAll()
                                 .requestMatchers("/api/v1/login/**").permitAll()
-                                .requestMatchers("/api/v1/ranking/auto**").hasRole(Role.ADMIN)
-                                .requestMatchers("/api/v1/ranking/update**").hasRole(Role.ADMIN)
-                                .requestMatchers("/api/v1/ranking/query**").hasRole(Role.ADMIN)
                                 .requestMatchers("/api/v1/ranking/**").permitAll()
                                 .requestMatchers("/api/v1/schedules/**").permitAll()
-                                .requestMatchers("/api/v1/scores/**").hasRole(Role.ADMIN)
+                                .requestMatchers("/api/v1/scores/**").permitAll()
                                 .requestMatchers("/api/v1/semester/**").permitAll()
-                                .requestMatchers("/api/v1/semester/refresh**").hasRole(Role.ADMIN)
                                 .requestMatchers("/api/v1/students/**").permitAll()
                                 .requestMatchers("/api/v1/subjects/**").permitAll()
                                 .requestMatchers("/api/v1/users/**").permitAll()
                                 .requestMatchers("/api/v1/posts/**").permitAll()
                                 .requestMatchers("/api/v1/comments/**").permitAll()
                                 .requestMatchers("/api/v1/likes/**").permitAll()
-                                .requestMatchers("/api/v1/file/**").hasAnyRole(Role.ADMIN, Role.TEACHER)
-                                .requestMatchers("/api/v1/graph**").hasAnyRole(Role.ADMIN, Role.TEACHER)
-                                .requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**").permitAll()
                                 .anyRequest().authenticated()
                 ) // Yêu cầu xác thực cho các yêu cầu khác
 //                .csrf(AbstractHttpConfigurer::disable)
@@ -128,7 +136,7 @@ public class WebSecurityConfig {
     @Bean
     public AuthenticationFailureHandler authenticationFailureHandler() {
         return (request, response, exception) -> {
-            response.sendRedirect("http://103.184.113.97:8080/login?error=true");
+            response.sendRedirect("https://kma-legend.onrender.com/login?error=true");
         };
     }
 
@@ -370,13 +378,13 @@ public class WebSecurityConfig {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             String formattedDate = today.format(formatter);
             if (passwordEncoder.encode(formattedDate).equals(temp.getPassword())) {
-                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&password=%s&token=%s&userId=%d&type=%s&role=%s",
-                        temp.getUsername(), formattedDate, URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type, temp.getRole().getRoleName());
+                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&password=%s&token=%s&userId=%d&type=%s",
+                        temp.getUsername(), formattedDate, URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type);
                 response.sendRedirect(redirectUrl);
             }
             else {
-                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&token=%s&userId=%d&type=%s&role=%s",
-                        temp.getUsername(), URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type, temp.getRole().getRoleName());
+                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&token=%s&userId=%d&type=%s",
+                        temp.getUsername(), URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type);
                 response.sendRedirect(redirectUrl);
             }
         };
@@ -412,13 +420,13 @@ public class WebSecurityConfig {
             email = user.getEmail();
         }
         String githubId = "";
-        if (user.getGithubId()==null){
+        if (user.getGithubId().length()<3){
             githubId = "";
         } else {
             githubId = user.getGithubId();
         }
         String avatar = "https://img.icons8.com/?size=100&id=aVI7R6wBB2ge&format=png&color=000000";
-        if (user.getAvatar()!=null){
+        if (user.getAvatar().length()>3){
             avatar = user.getAvatar();
         }
         User clone =  User.builder()

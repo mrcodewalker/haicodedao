@@ -12,7 +12,6 @@ import jdk.jshell.Snippet;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,11 +60,5 @@ public class UserController {
     ) throws DataNotFoundException {
         StatusResponse statusResponse = this.userService.updateAvatar(id+"",avatar, authHeader);
         return ResponseEntity.ok(statusResponse);
-    }
-    @GetMapping("/collect/users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> collectUsers(
-    ) throws DataNotFoundException {
-        return ResponseEntity.ok(this.userService.collectUsers());
     }
 }

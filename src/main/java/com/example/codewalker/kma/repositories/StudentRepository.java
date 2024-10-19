@@ -10,17 +10,10 @@ import java.util.List;
 @Repository
 public interface StudentRepository extends JpaRepository<Student,Long> {
     Student findByStudentCode(String studentCode);
-    Student findByStudentId(Long studentId);
     List<Student> findByStudentName(String studentName);
     List<Student> findByStudentClass(String studentClass);
     @Query("SELECT COUNT(s) > 0 FROM Student s WHERE s.studentCode = :studentCode")
     boolean existByStudentCode(String studentCode);
     @Query("SELECT s FROM Student s WHERE s.studentName LIKE %:studentName% AND s.studentName IS NOT NULL")
     List<Student> findStudentsBySimilarName(@Param("studentName") String studentName);
-    @Query("SELECT DISTINCT SUBSTRING(st.studentCode, 1, 6) FROM Student st")
-    List<String> findDistinctClass();
-    @Query("SELECT DISTINCT SUBSTRING(st.studentCode, 1, 4) FROM Student st")
-    List<String> findDistinctBlockDetail();
-    @Query("SELECT DISTINCT SUBSTRING(st.studentCode, 1, 2) FROM Student st")
-    List<String> findDistinctMajor();
 }

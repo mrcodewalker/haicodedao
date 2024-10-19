@@ -1,9 +1,8 @@
 package com.example.codewalker.kma.services;
 
 import com.example.codewalker.kma.dtos.CreateScoreDTO;
-import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.models.Semester;
-import com.example.codewalker.kma.responses.*;
+import com.example.codewalker.kma.responses.RankingResponse;
 
 import java.util.List;
 
@@ -15,8 +14,4 @@ public interface ISemesterService {
     void deleteAll();
     List<RankingResponse> getScholarship(String studentCode);
     List<Semester> createNewScore(CreateScoreDTO scoreDTO);
-    GraphFilterSubjectResponse getGraphScores(String subjectName) throws DataNotFoundException;
-    List<SemesterSubjectsResponse> subjectResponse();
-    StatusResponse resetSemesterTable();
-    StatusResponse parsingData();
 }

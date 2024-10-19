@@ -44,7 +44,7 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @JoinColumn(name = "role_id")
-    @ManyToOne()
+    @ManyToOne
     private Role role;
     @Column(name = "is_active")
     private boolean isActive;

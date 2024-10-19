@@ -11,5 +11,4 @@ public interface ISubjectService {
     Subject findBySubjectId(Long id);
     boolean existBySubjectName(String subjectName);
     List<Subject> findAll();
-    Subject findBySubjectName(String subjectName);
 }

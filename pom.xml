@@ -36,12 +36,6 @@
 			<artifactId>fontbox</artifactId>
 			<version>2.0.23</version>
 		</dependency>
-		<dependency>
-			<groupId>com.twilio.sdk</groupId>
-			<artifactId>twilio</artifactId>
-			<version>8.29.1</version>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
@@ -246,17 +240,14 @@
 	</dependencies>
 
 	<build>
-		<finalName>codewalker.kma-0.0.1-SNAPSHOT</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-
 				<configuration>
 					<image>
 						<builder>paketobuildpacks/builder-jammy-base:latest</builder>
 					</image>
-					<mainClass>com.example.codewalker.kma.Application</mainClass> <!-- Thay đổi theo class main của bạn -->
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

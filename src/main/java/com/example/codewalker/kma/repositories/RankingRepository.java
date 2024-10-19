@@ -3,11 +3,9 @@ package com.example.codewalker.kma.repositories;
 import com.example.codewalker.kma.models.Ranking;
 import com.example.codewalker.kma.models.*;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 @Repository
@@ -28,21 +26,4 @@ public interface RankingRepository extends JpaRepository<Ranking,Long> {
             @Param("mainCode") String mainCode);
     @Query("SELECT r FROM Ranking r WHERE r.ranking IN (1, 2, 3)")
     List<Ranking> findListTopRanking();
-    @Modifying
-    @Query("DELETE FROM Ranking")
-    @Transactional
-    void deleteAllRecords();
-    @Modifying
-    @Transactional
-    @Query(value = "ALTER TABLE ranking AUTO_INCREMENT = 1", nativeQuery = true)
-    void resetAutoIncrement();
-    @Query("SELECT rk FROM Ranking rk JOIN rk.student st WHERE st.studentCode LIKE :studentCodePrefix OR " +
-            "st.studentCode LIKE :studentCodeCyber OR " +
-            "st.studentCode LIKE :studentCodeElectric " +
-            "ORDER BY rk.gpa DESC")
-    List<Ranking> findBlockRanking(@Param("studentCodePrefix") String studentCodePrefix,
-                                   @Param("studentCodeCyber") String studentCodeCyber,
-                                   @Param("studentCodeElectric") String studentCodeElectric);
-    @Query("SELECT rk FROM Ranking rk JOIN rk.student st WHERE st.studentCode LIKE :studentCodePrefix ORDER BY rk.gpa DESC")
-    List<Ranking> findOneParam(@Param("studentCodePrefix") String studentCodePrefix);
 }

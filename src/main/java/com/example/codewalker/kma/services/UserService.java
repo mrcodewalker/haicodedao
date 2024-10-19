@@ -7,44 +7,39 @@ import com.example.codewalker.kma.filters.JwtTokenProvider;
 import com.example.codewalker.kma.models.Role;
 import com.example.codewalker.kma.models.User;
 import com.example.codewalker.kma.repositories.UserRepository;
-import com.example.codewalker.kma.responses.*;
+import com.example.codewalker.kma.responses.ProfileResponse;
+import com.example.codewalker.kma.responses.RegisterUserResponse;
+import com.example.codewalker.kma.responses.StatusResponse;
+import com.example.codewalker.kma.responses.TokenResponse;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserService{
-    private String jwtSecret = "Z54uiPhveohL/uORp8a8rHhu0qalR4Mj+aIOz5ZA5zY=";
+    @Value("${jwt.secret}")
+    private String jwtSecret;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+
     private final JwtTokenProvider jwtTokenProvider;
-//    @PostConstruct
-//    public void testRepository() {
-//        System.out.println(userRepository.findByUsername("haicodedao"));
-//    }
     @Override
     @Transactional
     public RegisterUserResponse createUser(UserDTO user) throws Exception{
         if (user.getUsername().length()<6
                 || user.getPassword().length()<8){
-            return RegisterUserResponse.builder()
-                    .userName(null)
-                    .build();
+            throw new InvalidParamException("Please check your information again!");
         }
         if (this.userExists(user.getUsername())){
             throw new DataNotFoundException("User name is already exists");
@@ -52,13 +47,15 @@ public class UserService implements IUserService{
         String email = "";
         if (user.getEmail().contains("@gmail.com")){
             email = user.getEmail();
-        } else {
-            return RegisterUserResponse.builder()
-                    .userName(null)
-                    .build();
         }
         String githubId = "";
+        if (user.getGithubId().length()<3){
+            githubId = "";
+        }
         String avatar = "https://img.icons8.com/?size=100&id=aVI7R6wBB2ge&format=png&color=000000";
+        if (user.getAvatar().length()>3){
+           avatar = user.getAvatar();
+        }
         User clone =  User.builder()
                 .email(email)
                 .role(Role.builder()
@@ -86,23 +83,24 @@ public class UserService implements IUserService{
 
     @Override
     public TokenResponse login(String username, String password) throws Exception {
-        Optional<User> existingUser = this.userRepository.findByUsername(username);
-        if (existingUser.isEmpty()) {
+        User existingUser = this.findUserByUserName(username);
+        if (existingUser == null) {
             return TokenResponse.builder()
                     .status("403")
+                    .username(username)
                     .build();
         }
-        User user = existingUser.get();
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!passwordEncoder.matches(password, existingUser.getPassword())) {
             return TokenResponse.builder()
                     .status("403")
+                    .username(username)
                     .build();
         }
 
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 username, password,
-                user.getAuthorities()
+                existingUser.getAuthorities()
         );
 
         try {
@@ -112,18 +110,17 @@ public class UserService implements IUserService{
 //            e.printStackTrace();
             return TokenResponse.builder()
                     .status("403")
+                    .username(username)
                     .build();
         }
 
         return TokenResponse.builder()
-                .token(jwtTokenProvider.generateToken(user))
+                .token(jwtTokenProvider.generateToken(existingUser))
+                .id(existingUser.getUserId()+"")
                 .status("200")
-                .role(user.getRole().getRoleName())
-                .username(user.getUsername())
-                .id(user.getUserId()+"")
+                .username(username)
                 .build();
     }
-
 
     @Override
     public User updateUser(User user) {
@@ -185,9 +182,12 @@ public class UserService implements IUserService{
 
     @Override
     public ProfileResponse getUserProfile(String id, String token) throws DataNotFoundException {
-        if (jwtTokenProvider.extractUserName(token.substring(7))
-                .equalsIgnoreCase(this.getUserById(Long.parseLong(id)).getUsername())){
+        String extractToken = this.getUsernameFromToken(token.substring(7));
+        if (this.userExistsById(Long.parseLong(id))){
             User user = this.getUserById(Long.parseLong(id));
+            if (!user.getUsername().equalsIgnoreCase(extractToken)){
+                return null;
+            }
             return ProfileResponse.builder()
                     .avatar(user.getAvatar())
                     .providerName(user.getProviderName())
@@ -226,30 +226,8 @@ public class UserService implements IUserService{
                 .build();
     }
 
-    @Override
-    public List<CollectUsersResponse> collectUsers() {
-        List<User> list = this.userRepository.findAll();
-        List<CollectUsersResponse> result = new ArrayList<>();
-        for(User clone: list){
-            result.add(
-                    CollectUsersResponse.builder()
-                            .id(clone.getUserId())
-                            .avatar(clone.getAvatar())
-                            .email(clone.getEmail())
-                            .githubId(clone.getGithubId())
-                            .roleName(clone.getRole().getRoleName())
-                            .username(clone.getUsername())
-                            .providerName(clone.getProviderName())
-                            .isActive(clone.isActive())
-                            .build()
-            );
-        }
-        return result;
-    }
-
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parser().setSigningKey(this.jwtSecret).parseClaimsJws(token).getBody();
+    private String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
         return claims.getSubject();
     }
-
 }

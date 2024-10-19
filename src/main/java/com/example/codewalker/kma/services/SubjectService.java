@@ -5,7 +5,6 @@ import com.example.codewalker.kma.repositories.SubjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,18 +51,5 @@ public class SubjectService implements ISubjectService {
     @Override
     public List<Subject> findAll() {
         return subjectRepository.findAll();
-    }
-
-    @Override
-    public Subject findBySubjectName(String subjectName) {
-        List<Subject> list = this.subjectRepository.findAll();
-        for (Subject clone: list){
-            if(clone.getSubjectName().equalsIgnoreCase(subjectName)
-        || Normalizer.normalize(clone.getSubjectName(), Normalizer.Form.NFD).replaceAll("\\p{M}", "").equalsIgnoreCase(
-                    Normalizer.normalize(subjectName, Normalizer.Form.NFD).replaceAll("\\p{M}", ""))){
-                return clone;
-            }
-        }
-        return null;
     }
 }
