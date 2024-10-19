@@ -24,5 +24,5 @@ public class Role {
     private String roleName;
     public static String ADMIN = "ADMIN";
     public static String USER = "USER";
-
+    public static String TEACHER = "TEACHER";
 }

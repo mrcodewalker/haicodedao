@@ -3,10 +3,7 @@ package com.example.codewalker.kma.services;
 import com.example.codewalker.kma.dtos.UserDTO;
 import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.models.User;
-import com.example.codewalker.kma.responses.ProfileResponse;
-import com.example.codewalker.kma.responses.RegisterUserResponse;
-import com.example.codewalker.kma.responses.StatusResponse;
-import com.example.codewalker.kma.responses.TokenResponse;
+import com.example.codewalker.kma.responses.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,11 +14,9 @@ public interface IUserService {
 
     TokenResponse login(String username, String password) throws Exception;
 
-
     User updateUser(User user);
 
     User findUserByUserName(String username);
-
 
     void deleteUser(Long id);
 
@@ -39,4 +34,5 @@ public interface IUserService {
     ProfileResponse getUserProfile(String id, String token) throws DataNotFoundException;
 
     StatusResponse updateAvatar(String id, String avatar, String token) throws DataNotFoundException;
+    List<CollectUsersResponse> collectUsers();
 }

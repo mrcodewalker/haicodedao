@@ -18,4 +18,6 @@ public class TokenResponse {
     private String id;
     @JsonProperty("username")
     private String username;
+    @JsonProperty("role")
+    private String role;
 }

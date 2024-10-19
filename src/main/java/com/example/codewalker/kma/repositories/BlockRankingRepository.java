@@ -2,9 +2,11 @@ package com.example.codewalker.kma.repositories;
 
 import com.example.codewalker.kma.models.BlockRanking;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,4 +30,12 @@ public interface BlockRankingRepository extends JpaRepository<BlockRanking,Long>
             @Param("mainCode") String mainCode,
             @Param("cyberCode") String cyberCode,
             @Param("electronicCode") String electronicCode);
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM BlockRanking")
+    void deleteAllRecords();
+    @Modifying
+    @Transactional
+    @Query(value = "ALTER TABLE block_ranking AUTO_INCREMENT = 1", nativeQuery = true)
+    void resetAutoIncrement();
 }

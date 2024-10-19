@@ -2,7 +2,16 @@ package com.example.codewalker.kma;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
+import javax.sql.DataSource;
 
 @SpringBootApplication
 public class Application {
@@ -29,4 +38,13 @@ public class Application {
 		// Khởi động ứng dụng Spring Boot
 		SpringApplication.run(Application.class, args);
 	}
+//	@Bean
+//	public DataSource localHost(){
+//		return DataSourceBuilder.create()
+//				.url("jdbc:mysql://localhost:4306/clone")
+//				.username("root")
+//				.password("123456789")
+//				.driverClassName("com.mysql.cj.jdbc.Driver")
+//				.build();
+//	}
 }

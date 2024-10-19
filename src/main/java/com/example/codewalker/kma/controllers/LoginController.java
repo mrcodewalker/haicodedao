@@ -4,6 +4,7 @@ import com.example.codewalker.kma.dtos.ListSubjectsDTO;
 import com.example.codewalker.kma.dtos.LoginDTO;
 import com.example.codewalker.kma.responses.GoogleLoginResponse;
 import com.example.codewalker.kma.services.LoginService;
+import com.example.codewalker.kma.services.ScoreService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.persistence.criteria.Root;
 import jakarta.servlet.http.HttpSession;
@@ -24,11 +25,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("api/v1/login")
-@CrossOrigin(origins = "https://kma-legend.onrender.com")
+@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 public class LoginController {
 
     private final LoginService loginService;
+    private final ScoreService scoreService;
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) throws IOException {
         return this.loginService.login(loginDTO.getUsername(), loginDTO.getPassword());
@@ -54,5 +56,8 @@ public class LoginController {
                     .email((String) map.get("email"))
                 .build());
     }
-
+    @GetMapping("/users/{id}")
+    public ResponseEntity<?> getScoresByStudentCode(@PathVariable("id") String studentCode){
+        return ResponseEntity.ok(scoreService.getScoreByStudentCode(studentCode));
+    }
 }

@@ -10,7 +10,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class SubjectResponse {
-
     @JsonProperty("subject_name")
     private String subjectName;
 }
