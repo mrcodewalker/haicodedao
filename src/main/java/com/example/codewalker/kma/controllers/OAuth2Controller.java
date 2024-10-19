@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("${api.prefix}/oauth2")
+@RequestMapping("api/v1/oauth2")
 public class OAuth2Controller {
     @GetMapping("/login/google")
     @PermitAll

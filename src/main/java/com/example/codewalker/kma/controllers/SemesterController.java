@@ -3,6 +3,7 @@ package com.example.codewalker.kma.controllers;
 import com.example.codewalker.kma.dtos.CreateScoreDTO;
 import com.example.codewalker.kma.dtos.SingleStringDTO;
 import com.example.codewalker.kma.dtos.StudentFailedDTO;
+import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.models.Semester;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
@@ -16,7 +17,9 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.modelmapper.internal.Pair;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,11 +43,11 @@ public class SemesterController {
     private List<Pair<String,Integer>> specialCase = new ArrayList<>();
     private Integer totalSubjects = 0;
     @PostMapping("/update")
-    public ResponseEntity<?> SemesterUpdate() throws Exception{
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot2.pdf");
-        FileInputStream fileInputStream = new FileInputStream(file);
+    public ResponseEntity<?> SemesterUpdate(
+            @RequestParam("file")MultipartFile file
+            ) throws Exception{
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -144,7 +147,7 @@ public class SemesterController {
         }
         System.out.println(this.specialCase);
         boolean passedSubjects = false;
-        collectAllSubjects(file.getPath());
+        collectAllSubjects(file);
 
         for (String line : lines) {
             int spaceIndex = line.indexOf(" ");
@@ -267,12 +270,12 @@ public class SemesterController {
         pdfDocument.close();
         return null;
     }
-    public void collectAllSubjects(String pathName) throws Exception {
-        File file = new File(pathName);
-        FileInputStream fileInputStream = new FileInputStream(file);
+    public void collectAllSubjects(
+            MultipartFile file
+    ) throws Exception {
         Map<String, String> list = new LinkedHashMap<>();
 
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -442,11 +445,11 @@ public class SemesterController {
         }
     }
     @PostMapping("/failed/student")
-    public ResponseEntity<?> createFailedStudents() throws Exception{
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot2.pdf");
-        FileInputStream fileInputStream = new FileInputStream(file);
+    public ResponseEntity<?> createFailedStudents(
+            @RequestParam("file") MultipartFile file
+    ) throws Exception{
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -546,7 +549,7 @@ public class SemesterController {
         }
         System.out.println(this.specialCase);
         boolean passedSubjects = false;
-        collectAllSubjects(file.getPath());
+        collectAllSubjects(file);
 
         for (String line : lines) {
             int spaceIndex = line.indexOf(" ");
@@ -583,11 +586,13 @@ public class SemesterController {
         return ResponseEntity.ok("Data has been renewed");
     }
     @PostMapping("/ranking")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> RankingUpdate(){
         this.semesterRankingService.updateGPA();
         return ResponseEntity.ok("Ranking has been updated");
     }
     @PostMapping("/update_scholarship")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> scholarshipUpdate(){
         this.semesterRankingService.scholarshipUpdate();
         return ResponseEntity.ok("Ranking has been updated");
@@ -616,9 +621,37 @@ public class SemesterController {
         );
     }
     @PostMapping("/create/score")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createNewScore(@RequestBody CreateScoreDTO createScoreDTO){
         return ResponseEntity.ok(
                 this.semesterService.createNewScore(createScoreDTO)
+        );
+    }
+    @PostMapping("/filter/graph")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> filterGraph(@RequestParam("subject_name") String subjectName) throws DataNotFoundException {
+        return ResponseEntity.ok(
+                this.semesterService.getGraphScores(subjectName)
+        );
+    }
+    @GetMapping("/collect/subjects")
+    public ResponseEntity<?> collectSubjects()  {
+        return ResponseEntity.ok(
+                this.semesterService.subjectResponse()
+        );
+    }
+    @GetMapping("/reset")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> resetData(){
+        return ResponseEntity.ok(
+                this.semesterService.resetSemesterTable()
+        );
+    }
+    @PostMapping("/refresh/data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addData(){
+        return ResponseEntity.ok(
+                this.semesterService.parsingData()
         );
     }
 }

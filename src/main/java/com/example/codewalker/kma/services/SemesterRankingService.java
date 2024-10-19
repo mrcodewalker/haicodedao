@@ -55,7 +55,10 @@ public class SemesterRankingService implements ISemesterRankingService{
         }
         this.semesterRankingRepository.saveAll(rankingList);
     }
+    @Transactional
     public void scholarshipUpdate() {
+        this.scholarshipRepository.deleteAllRecords();
+        this.scholarshipRepository.resetAutoIncrement();
         List<Student> studentList = new ArrayList<>();
         studentList = this.studentRepository.findAll();
         for (int i=0;i<studentList.size();i++){
@@ -226,7 +229,7 @@ public class SemesterRankingService implements ISemesterRankingService{
 
     @Override
     public List<SemesterRankingResponse> filterListStudents(String filterCode) {
-        Pageable pageable = PageRequest.of(0, 40);
+        Pageable pageable = PageRequest.of(0, 30);
         List<SemesterRanking> response = this.semesterRankingRepository.findTopWithMatchingFilterCode(filterCode, pageable);
         List<SemesterRankingResponse> result = new ArrayList<>();
         for (SemesterRanking clone : response){

@@ -36,5 +36,7 @@ public class Score {
 
     @Column(name = "score_over_rall", nullable = false)
     private Float scoreOverall;
+    @Column(name = "semester")
+    private String semester;
 }
 

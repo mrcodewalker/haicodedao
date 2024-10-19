@@ -1,14 +1,22 @@
 package com.example.codewalker.kma.services;
 
+import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.models.*;
 import com.example.codewalker.kma.repositories.*;
-import com.example.codewalker.kma.responses.RankingResponse;
-import com.example.codewalker.kma.models.*;
-import com.example.codewalker.kma.repositories.*;
+import com.example.codewalker.kma.responses.*;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,16 +30,20 @@ public class RankingService implements IRankingService {
     private final BlockRankingRepository blockRankingRepository;
     private final BlockDetailRankingRepository blockDetailRankingRepository;
     private final ClassRankingRepository classRankingRepository;
-
+    private final ScholarshipRepository scholarshipRepository;
+    private final SemesterRankingRepository semesterRankingRepository;
     private final SubjectService subjectService;
-
+    private final SemesterRepository semesterRepository;
+    private final StudentFailedRepository studentFailedRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final TransactionTemplate transactionTemplate;
     private List<Ranking> cachedRankings = new ArrayList<>();
+    public Long setTimeOut = 2*1000L;
 
     @Override
     @Transactional
     public void  updateGPA() throws Exception {
         List<Student> studentList = studentRepository.findAll();
-
         // Fetch all scores and subjects in one query
         List<Score> allScores = scoreRepository.findAll();
         Map<String, List<Score>> scoresByStudent = allScores.stream()
@@ -92,18 +104,19 @@ public class RankingService implements IRankingService {
                     subjects++;
                 }
             }
-            if (!student.getStudentCode().contains("CT08")
-                    && !student.getStudentCode().contains("CT07")
-                    && !student.getStudentCode().contains("CT06")
-                    && !student.getStudentCode().contains("CT05")
-                    && !student.getStudentCode().contains("DT07")
-                    && !student.getStudentCode().contains("DT06")
-                    && !student.getStudentCode().contains("DT05")
-                    && !student.getStudentCode().contains("DT04")
-                    && !student.getStudentCode().contains("AT20")
-                    && !student.getStudentCode().contains("AT19")
-                    && !student.getStudentCode().contains("AT18")
-                    && !student.getStudentCode().contains("AT17")
+            String studentCode = student.getStudentCode();
+            if (!studentCode.contains("CT08")
+                    && !studentCode.contains("CT07")
+                    && !studentCode.contains("CT06")
+                    && !studentCode.contains("CT05")
+                    && !studentCode.contains("DT07")
+                    && !studentCode.contains("DT06")
+                    && !studentCode.contains("DT05")
+                    && !studentCode.contains("DT04")
+                    && !studentCode.contains("AT20")
+                    && !studentCode.contains("AT19")
+                    && !studentCode.contains("AT18")
+                    && !studentCode.contains("AT17")
             ){
                 continue;
             }
@@ -126,69 +139,367 @@ public class RankingService implements IRankingService {
         for (int i = 0; i < newRankings.size(); i++) {
             newRankings.get(i).setRanking((long) (i + 1));
         }
+        this.rankingRepository.deleteAllRecords();
+        this.rankingRepository.resetAutoIncrement();
         rankingRepository.saveAll(newRankings);
     }
+    @Override
+    @Transactional
+    public SseEmitter updateAllRankings() throws Exception {
+        SseEmitter emitter = new SseEmitter(6000000L);
+
+        new Thread(() -> {
+            try {
+                // Bắt đầu cập nhật GPA và các thứ khác
+                emitter.send("Updating GPA...");
+                Thread.sleep(this.setTimeOut);
+                updateGPA();
+                emitter.send("GPA has been updated");
+                Thread.sleep(this.setTimeOut);
+
+                emitter.send("Updating Block Ranking...");
+                Thread.sleep(this.setTimeOut);
+                updateBlockRanking();
+                emitter.send("Block Ranking has been updated");
+                Thread.sleep(this.setTimeOut);
+
+
+                emitter.send("Updating Class Ranking...");
+                Thread.sleep(this.setTimeOut);
+                updateClassRanking();
+                emitter.send("Class Ranking has been updated");
+                Thread.sleep(this.setTimeOut);
+
+                emitter.send("Updating Major Ranking...");
+                Thread.sleep(this.setTimeOut);
+                updateMajorRanking();
+                emitter.send("Major Ranking has been updated");
+                Thread.sleep(this.setTimeOut);
+
+                emitter.send("Updating Block Detail Ranking...");
+                Thread.sleep(this.setTimeOut);
+                updateBlockDetailRanking();
+                emitter.send("Block Detail Ranking has been updated");
+                Thread.sleep(this.setTimeOut);
+
+                emitter.send("Updating Semester Table...");
+                Thread.sleep(this.setTimeOut);
+                updateSemesterTable();
+                emitter.send("Semester Table has been updated");
+                Thread.sleep(this.setTimeOut);
+
+                emitter.send("Updating Semester Ranking...");
+                Thread.sleep(this.setTimeOut);
+                updateSemesterRanking();
+                emitter.send("Semester Ranking has been updated");
+                Thread.sleep(this.setTimeOut);
+
+                emitter.send("Updating Scholarship List...");
+                Thread.sleep(this.setTimeOut);
+                updateScholarShip();
+                emitter.send("Scholarship List has been updated");
+                Thread.sleep(this.setTimeOut);
+
+                emitter.send("Updating GPA (FINAL)...");
+                Thread.sleep(this.setTimeOut);
+                updateGPA();
+
+                emitter.send("All updates completed");
+                Thread.sleep(this.setTimeOut);
+            } catch (Exception e) {
+                emitter.completeWithError(e); // Hoàn tất với lỗi
+            } finally {
+                emitter.complete(); // Đóng emitter
+            }
+        }).start();
+
+        return emitter; // Trả về emitter
+    }
+    @Override
+    @Transactional
+    public StatusResponse updateRankings() throws Exception {
+        updateGPA();
+        updateBlockRanking();
+        updateClassRanking();
+        updateBlockDetailRanking();
+        updateMajorRanking();
+        updateSemesterTable();
+        updateSemesterRanking();
+        updateScholarShip();
+        return StatusResponse.builder()
+                .status("200")
+                .build();
+    }
+
+
+    @Transactional
     public void updateBlockRanking() throws Exception {
         List<Student> studentList = this.studentRepository.findAll();
-        for (int i = 0; i < studentList.size(); i++) {
-            List<String> convertCode = this.convertToBlockCode(studentList.get(i).getStudentCode());
-            if (this.blockRankingRepository.findListFilterBlock(convertCode.get(0), convertCode.get(1), convertCode.get(2))!=null
-        && this.blockRankingRepository.findListFilterBlock(convertCode.get(0), convertCode.get(1), convertCode.get(2)).size()>0){
-                continue;
-            }
-            List<BlockRanking> blockRankings = this.findBlockRankingLocal(studentList.get(i).getStudentCode());
-
-            if (blockRankings.size()>0){
-                this.blockRankingRepository.saveAll(blockRankings);
+        this.blockRankingRepository.deleteAllRecords();
+        this.blockRankingRepository.resetAutoIncrement();
+        List<BlockRanking> result = new ArrayList<>();
+        String technology[] = new String[]{
+                "CT08%", "CT07%", "CT06%", "CT05%", "CT04%",
+                "CT03%"
+        };
+        String cyber[] = new String[]{
+                "AT20%", "AT19%", "AT18%", "AT17%", "AT16%",
+                "AT15%"
+        };
+        String electric[] = new String[]{
+                "DT07%", "DT06%", "DT05%", "DT04%", "DT03%",
+                "DT02%"
+        };
+        for (int i=0;i<technology.length;i++){
+            long count = 0;
+            List<Ranking> list = this.rankingRepository.findBlockRanking(technology[i], cyber[i], electric[i]);
+            for (Ranking clone: list){
+                result.add(
+                        BlockRanking.builder()
+                                .student(clone.getStudent())
+                                .asiaGpa(clone.getAsiaGpa())
+                                .gpa(clone.getGpa())
+                                .ranking(++count)
+                                .build()
+                );
             }
         }
+        this.blockRankingRepository.saveAll(result);
     }
+    @Transactional
+    public void updateSemesterRanking() {
+        this.semesterRankingRepository.deleteAllRecords();
+        this.semesterRankingRepository.resetAutoIncrement();
+        List<Student> studentList = studentRepository.findAll();
+
+        // Fetch all scores and subjects in one query
+        List<Semester> allScores = semesterRepository.findAll();
+        Map<String, List<Semester>> scoresByStudent = allScores.stream()
+                .collect(Collectors.groupingBy(score -> score.getStudent().getStudentCode()));
+
+        List<Subject> allSubjects = subjectService.findAll();
+        Map<String, Subject> subjectMap = allSubjects.stream()
+                .collect(Collectors.toMap(Subject::getSubjectName, subject -> subject));
+
+        List<SemesterRanking> newRankings = new ArrayList<>();
+
+        for (Student student : studentList) {
+            float gpa = 0f;
+            int count = 0;
+            int subjects = 0;
+
+            List<Semester> scoreList = scoresByStudent.get(student.getStudentCode());
+            if (scoreList != null) {
+                for (Semester score : scoreList) {
+                    if (score.getSubject().getSubjectName().contains("Giáo dục thể chất")) {
+                        continue;
+                    }
+
+                    Subject subject = subjectMap.get(score.getSubject().getSubjectName());
+                    if (subject == null) continue;
+
+                    float scoreValue;
+                    switch (score.getScoreText()) {
+                        case "A+":
+                            scoreValue = 4.0f;
+                            break;
+                        case "A":
+                            scoreValue = 3.8f;
+                            break;
+                        case "B+":
+                            scoreValue = 3.5f;
+                            break;
+                        case "B":
+                            scoreValue = 3.0f;
+                            break;
+                        case "C+":
+                            scoreValue = 2.5f;
+                            break;
+                        case "C":
+                            scoreValue = 2.0f;
+                            break;
+                        case "D+":
+                            scoreValue = 1.5f;
+                            break;
+                        case "D":
+                            scoreValue = 1.0f;
+                            break;
+                        default:
+                            continue;
+                    }
+                    gpa += scoreValue * subject.getSubjectCredits();
+                    count += subject.getSubjectCredits();
+                    subjects++;
+                }
+            }
+            String studentCode = student.getStudentCode();
+            if (!studentCode.contains("CT08")
+                    && !studentCode.contains("CT07")
+                    && !studentCode.contains("CT06")
+                    && !studentCode.contains("CT05")
+                    && !studentCode.contains("DT07")
+                    && !studentCode.contains("DT06")
+                    && !studentCode.contains("DT05")
+                    && !studentCode.contains("DT04")
+                    && !studentCode.contains("AT20")
+                    && !studentCode.contains("AT19")
+                    && !studentCode.contains("AT18")
+                    && !studentCode.contains("AT17")
+            ){
+                continue;
+            }
+            if (subjects<=3){
+                continue;
+            }
+            if (count != 0) {
+                float roundedGPA = Math.round((gpa / count) * 100) / 100f;
+                float roundedAsiaGPA = Math.round((gpa / count) * 2.5f * 100) / 100f;
+                newRankings.add(SemesterRanking.builder()
+                        .student(student)
+                        .gpa(roundedGPA)
+                        .ranking(1L)
+                        .asiaGpa(roundedAsiaGPA)
+                        .build());
+            }
+        }
+
+        newRankings.sort(Comparator.comparing(SemesterRanking::getAsiaGpa).reversed());
+        for (int i = 0; i < newRankings.size(); i++) {
+            newRankings.get(i).setRanking((long) (i + 1));
+        }
+        semesterRankingRepository.saveAll(newRankings);
+    }
+    @Transactional
     public void updateClassRanking() throws Exception{
-        List<Student> studentList = this.studentRepository.findAll();
+        List<String> studentList = this.studentRepository.findDistinctClass();
+        this.classRankingRepository.deleteAllRecords();
+        this.classRankingRepository.resetAutoIncrement();
+        List<ClassRanking> result = new ArrayList<>();
         for (int i=0;i<studentList.size();i++){
-            if (this.classRankingRepository.findListFilter(studentList.get(i).getStudentCode().substring(0,6).toUpperCase()) != null
-                    && this.classRankingRepository.findListFilter(studentList.get(i).getStudentCode().substring(0,6).toUpperCase()).size()>0) {
-                continue;
-            }
-
-            List<ClassRanking> classRankings = this.findClassRankingLocal(studentList.get(i).getStudentCode());
-
-            if (classRankings.size() > 0) {
-                this.classRankingRepository.saveAll(classRankings);
+            long count = 0;
+            List<Ranking> classRankings = this.rankingRepository.findOneParam(studentList.get(i)+"%");
+            for (Ranking ranking: classRankings){
+                result.add(
+                        ClassRanking.builder()
+                                .gpa(ranking.getGpa())
+                                .ranking(++count)
+                                .asiaGpa(ranking.getAsiaGpa())
+                                .student(ranking.getStudent())
+                                .build()
+                );
             }
         }
+        this.classRankingRepository.saveAll(result);
     }
-    public void updateMajorRanking() throws Exception{
-        List<Student> studentList = this.studentRepository.findAll();
-        for (int i=0;i<studentList.size();i++){
-            if (this.majorRankingRepository.findListFilter(studentList.get(i).getStudentCode().substring(0,2).toUpperCase()) != null
-                    && this.majorRankingRepository.findListFilter(studentList.get(i).getStudentCode().substring(0,2).toUpperCase()).size()>0) {
-                continue;
-            }
-
-            List<MajorRanking> majorRankings = this.findMajorRankingLocal(studentList.get(i).getStudentCode());
-
-            if (majorRankings.size() > 0) {
-                this.majorRankingRepository.saveAll(majorRankings);
-            }
-        }
-    }
+    @Transactional
     public void updateBlockDetailRanking() throws Exception{
-        List<Student> studentList = this.studentRepository.findAll();
+        this.blockDetailRankingRepository.deleteAllRecords();
+        this.blockDetailRankingRepository.resetAutoIncrement();
+        List<String> studentList = this.studentRepository.findDistinctBlockDetail();
+        List<BlockDetailRanking> result = new ArrayList<>();
         for (int i=0;i<studentList.size();i++){
-            if (this.blockDetailRankingRepository
-                    .findListFilter(studentList.get(i).getStudentCode().substring(0,4).toUpperCase()) != null
-                    &&
-                    this.blockDetailRankingRepository.findListFilter(studentList.get(i).getStudentCode().substring(0,4).toUpperCase()).size()>0) {
-                continue;
-            }
+            long count = 0;
+            List<Ranking> blockDetailRankings = this.rankingRepository.findOneParam(studentList.get(i)+"%");
 
-            List<BlockDetailRanking> blockDetailRankings = this.findBlockDetailRankingLocal(studentList.get(i).getStudentCode());
-
-            if (blockDetailRankings.size() > 0) {
-                this.blockDetailRankingRepository.saveAll(blockDetailRankings);
+            for(Ranking clone: blockDetailRankings){
+                result.add(
+                        BlockDetailRanking.builder()
+                                .ranking(++count)
+                                .asiaGpa(clone.getAsiaGpa())
+                                .gpa(clone.getGpa())
+                                .student(clone.getStudent())
+                                .build()
+                );
             }
         }
+        this.blockDetailRankingRepository.saveAll(result);
+    }
+    @Transactional
+    public void updateScholarShip() {
+        this.scholarshipRepository.deleteAllRecords();
+        this.scholarshipRepository.resetAutoIncrement();
+        String technology[] = new String[]{
+                "CT08%", "CT07%", "CT06%", "CT05%", "CT04%",
+                "CT03%"
+        };
+        String cyber[] = new String[]{
+                "AT20%", "AT19%", "AT18%", "AT17%", "AT16%",
+                "AT15%"
+        };
+        String electric[] = new String[]{
+                "DT07%", "DT06%", "DT05%", "DT04%", "DT03%",
+                "DT02%"
+        };
+        List<Scholarship> result = new ArrayList<>();
+        for (int i=0;i<technology.length;i++){
+            long count = 0;
+            List<SemesterRanking> list = this.semesterRankingRepository.findBlockRanking(
+                    technology[i], cyber[i], electric[i]
+            );
+            for (SemesterRanking clone: list){
+                result.add(
+                        Scholarship.builder()
+                                .ranking(++count)
+                                .asiaGpa(clone.getAsiaGpa())
+                                .gpa(clone.getGpa())
+                                .student(clone.getStudent())
+                                .build()
+                );
+            }
+        }
+        this.scholarshipRepository.saveAll(result);
+    }
+    @Transactional
+    public void updateMajorRanking() throws Exception{
+        List<String> studentList = this.studentRepository.findDistinctMajor();
+        this.majorRankingRepository.deleteAllRecords();
+        this.majorRankingRepository.resetAutoIncrement();
+        List<MajorRanking> result = new ArrayList<>();
+        for (int i=0;i<studentList.size();i++){
+            long count = 0;
+            List<Ranking> majorRankings = this.rankingRepository.findOneParam(
+                    studentList.get(i)+"%"
+            );
+
+            for (Ranking clone: majorRankings){
+                result.add(
+                  MajorRanking.builder()
+                          .ranking(++count)
+                          .asiaGpa(clone.getAsiaGpa())
+                          .gpa(clone.getGpa())
+                          .student(clone.getStudent())
+                          .build()
+                );
+            }
+        }
+        this.majorRankingRepository.saveAll(result);
+    }
+    @Transactional
+    public void updateSemesterTable() {
+        this.semesterRepository.deleteAllScores();
+        this.semesterRepository.resetAutoIncrement();
+        this.studentFailedRepository.deleteAllScores();
+        this.studentFailedRepository.resetAutoIncrement();
+        List<Score> list = this.scoreRepository.findScoresWithLatestSemester();
+        List<Semester> result = list.stream().map(
+                scores -> {
+                    if (scores.getScoreFinal()<4){
+                        this.studentFailedRepository.save(StudentFailed.builder()
+                                        .studentCode(scores.getStudent().getStudentCode())
+                                .build());
+                    }
+                    return Semester.builder()
+                            .student(scores.getStudent())
+                            .subject(scores.getSubject())
+                            .scoreText(scores.getScoreText())
+                            .scoreSecond(scores.getScoreSecond())
+                            .scoreFinal(scores.getScoreFinal())
+                            .scoreFirst(scores.getScoreFirst())
+                            .scoreOverall(scores.getScoreOverall())
+                            .build();
+                }
+        ).collect(Collectors.toList());
+        this.semesterRepository.saveAll(result);
     }
     public List<BlockRanking> findBlockRankingLocal(String studentCode) throws Exception {
         List<String> convertCode = this.convertToBlockCode(studentCode);
@@ -198,7 +509,7 @@ public class RankingService implements IRankingService {
         List<BlockRanking> blockRankings = new ArrayList<>();
         List<Ranking> rankings = rankingRepository.findListFilterBlock(mainCode, cyberCode, electronicCode);
         if (this.blockRankingRepository.findListFilterBlock(mainCode, cyberCode, electronicCode)==null
-        || this.blockRankingRepository.findListFilterBlock(mainCode, cyberCode, electronicCode).size()==0) {
+                || this.blockRankingRepository.findListFilterBlock(mainCode, cyberCode, electronicCode).size()==0) {
             for (int i = 0; i < rankings.size(); i++) {
                 rankings.get(i).setRanking(i + 1L);
                 blockRankings.add(BlockRanking.formData(rankings.get(i)));
@@ -353,6 +664,35 @@ public class RankingService implements IRankingService {
         return result;
     }
 
+    @Override
+    public ListScoreResponse getScoreByStudentCode(String studentCode) {
+        Student student = this.findByStudentCode(studentCode);
+        List<Score> list = scoreRepository.findByStudentId(student.getStudentId());
+        List<ScoreResponse> data = new ArrayList<>();
+        for (Score clone : list){
+            ScoreResponse scoreResponse = ScoreResponse.builder()
+                    .scoreFinal(clone.getScoreFinal())
+                    .scoreSecond(clone.getScoreSecond())
+                    .scoreOverall(clone.getScoreOverall())
+                    .scoreFirst(clone.getScoreFirst())
+                    .scoreText(clone.getScoreText())
+                    .subjectName(clone.getSubject().getSubjectName())
+                    .build();
+            data.add(scoreResponse);
+        }
+        return ListScoreResponse.builder()
+                .studentResponse(StudentResponse.builder()
+                        .studentClass(student.getStudentClass())
+                        .studentName(student.getStudentName())
+                        .studentCode(student.getStudentCode())
+                        .build())
+                .scoreResponses(data)
+                .build();
+    }
+
+    public Student findByStudentCode(String studentCode) {
+        return studentRepository.findByStudentCode(studentCode);
+    }
     public List<String> convertToBlockCode(String studentCode){
         String mainCode = studentCode.substring(0, 4);
         String cyberCode = "";

@@ -1,10 +1,12 @@
 package com.example.codewalker.kma.controllers;
 
 import com.example.codewalker.kma.dtos.CreateScoreDTO;
+import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.models.Score;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
 import com.example.codewalker.kma.repositories.SubjectRepository;
+import com.example.codewalker.kma.responses.StatusResponse;
 import com.example.codewalker.kma.services.ScoreService;
 import com.example.codewalker.kma.services.SemesterService;
 import com.example.codewalker.kma.services.StudentService;
@@ -15,12 +17,18 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.modelmapper.internal.Pair;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.text.Normalizer;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/scores")
@@ -38,14 +46,21 @@ public class ScoreController {
     private Integer totalSubjects = 0;
 
     @PostMapping("/score")
-    public ResponseEntity<?> ReadPDFFile() throws Exception {
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki2_dot2.pdf");
-        FileInputStream fileInputStream = new FileInputStream(file);
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public ResponseEntity<?> ReadPDFFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("semester") String semester
+    ) throws Exception {
+        // TITLE SCORE
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File không hợp lệ.");
+        }
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -144,7 +159,7 @@ public class ScoreController {
         }
 //        System.out.println(this.specialCase);
         boolean passedSubjects = false;
-        collectAllSubjects(file.getPath());
+        collectAllSubjects(file);
         String previousLine = "";
         String previousSubject = "";
         for (String line : lines) {
@@ -162,7 +177,6 @@ public class ScoreController {
                     }
                     if (passedSubjects){
                         if (firstWord.equals("1")&&secondWord.split(" ").length>7){
-//                            System.out.println(firstWord+ " "+secondWord);
                             rows++;
                         }
                         String data[] = secondWord.split(" ");
@@ -213,7 +227,6 @@ public class ScoreController {
                             if (!Arrays.asList(invalidScores).contains(scoreText.toUpperCase())) continue;
                         } else continue;
                         if (scoreFirst>=0&&scoreSecond>=0&&scoreFinal>=0&&scoreOverRall>=0) {
-//
                             if (studentClass.contains("0")){
                                 String clone[] = studentClass.split("0");
                                 studentClass = clone[0].trim()+clone[1].trim();
@@ -252,13 +265,6 @@ public class ScoreController {
                                     .id(subjectService.findSubjectByName(this.listSubjectsName.get(rows)).getId())
                                     .build();
 
-//                            if (student.getStudentCode().equals("CT060331")){
-//                                System.out.println(scoreFinal+" "+subject.getSubjectName());
-//                            }
-//                            if (scoreFinal<4){
-//                                continue;
-//                            }
-                            if (student.getStudentCode().equalsIgnoreCase("AT190224")) {
                                 Score score = Score.builder()
                                         .scoreFirst(scoreFirst)
                                         .scoreFinal(scoreFinal)
@@ -267,10 +273,11 @@ public class ScoreController {
                                         .scoreOverall(scoreOverRall)
                                         .student(student)
                                         .subject(subject)
+                                        .semester(semester)
                                         .build();
-                                System.out.println(score);
+//                                System.out.println(score);
 //                                scoreService.createScore(score);
-                            }
+                                // TITLE END
 //                                System.out.println(score);
 
                         }
@@ -281,17 +288,40 @@ public class ScoreController {
         }
 
         pdfDocument.close();
-        return null;
+        return ResponseEntity.ok(
+                StatusResponse.builder()
+                        .status("200")
+                        .build()
+        );
     }
-    public void collectAllSubjects(String pathName) throws Exception {
-        File file = new File(pathName);
-        FileInputStream fileInputStream = new FileInputStream(file);
+    public static String extractSemester(String fileName) throws Exception {
+        // Kiểm tra định dạng file
+        if (!fileName.endsWith(".pdf")) {
+            throw new Exception("File name must end with .pdf");
+        }
+
+        // Tách phần chuỗi trước .pdf
+        String baseName = fileName.substring(0, fileName.lastIndexOf("."));
+
+        // Kiểm tra định dạng "namYYYY_YYYY_kiX"
+        if (!baseName.contains("nam") || !baseName.contains("_")) {
+            throw new Exception("File name does not have the required format");
+        }
+
+        String line[] = fileName.split("_");
+        if (line.length<4) {
+            throw new DataNotFoundException("Please check your name content file again!");
+        }
+        // Ghép lại thành "ki2-2023-2024"
+        return line[2] + "-" + line[0].replace("nam","") + "-" + line[1];
+    }
+    public void collectAllSubjects(MultipartFile file) throws Exception {
         Map<String, String> list = new LinkedHashMap<>();
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
 
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -461,14 +491,17 @@ public class ScoreController {
         }
     }
     @PostMapping("/score/complement")
-    public ResponseEntity<?> ReadPDFFileComplement() throws Exception {
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\ltcb_bo_sung.pdf");
-        FileInputStream fileInputStream = new FileInputStream(file);
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public ResponseEntity<?> ReadPDFFileComplement(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("semester") String semester
+    ) throws Exception {
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
 
@@ -566,7 +599,7 @@ public class ScoreController {
 //        }
 //        System.out.println(this.specialCase);
         boolean passedSubjects = false;
-        collectAllSubjectsFake(file.getPath());
+        collectAllSubjectsFake(file);
         String previousLine = "";
         String previousSubject = "";
         for (String line : lines) {
@@ -678,8 +711,9 @@ public class ScoreController {
                                     .scoreOverall(scoreOverRall)
                                     .student(student)
                                     .subject(subject)
+                                    .semester(semester)
                                     .build();
-                            scoreService.createScore(score);
+//                            scoreService.createScore(score);
 ////                                System.out.println(score);
 
                         }
@@ -690,7 +724,11 @@ public class ScoreController {
         }
 
         pdfDocument.close();
-        return null;
+        return ResponseEntity.ok(
+                StatusResponse.builder()
+                        .status("200")
+                        .build()
+        );
     }
     @PostMapping("/create/score")
     public ResponseEntity<?> createNewScore(
@@ -701,15 +739,13 @@ public class ScoreController {
                         scoreDTO
                 ));
     }
-    public void collectAllSubjectsFake(String pathName) throws Exception {
-        File file = new File(pathName);
-        FileInputStream fileInputStream = new FileInputStream(file);
+    public void collectAllSubjectsFake(MultipartFile file) throws Exception {
         Map<String, String> list = new LinkedHashMap<>();
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
 
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -879,14 +915,14 @@ public class ScoreController {
         }
     }
     @PostMapping("/score/semester")
-    public ResponseEntity<?> SaveSemester() throws Exception {
-        File file = new File("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma\\src\\main\\resources\\storage\\nam2023_2024_ki1_dot1.pdf");
-        FileInputStream fileInputStream = new FileInputStream(file);
+    public ResponseEntity<?> SaveSemester(
+            @RequestParam("file") MultipartFile file
+    ) throws Exception {
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
-        PDDocument pdfDocument = PDDocument.load(fileInputStream);
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -985,7 +1021,7 @@ public class ScoreController {
         }
         System.out.println(this.specialCase);
         boolean passedSubjects = false;
-        collectAllSubjects(file.getPath());
+        collectAllSubjects(file);
 
         for (String line : lines) {
             int spaceIndex = line.indexOf(" ");
@@ -1191,13 +1227,6 @@ public class ScoreController {
     }
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getScoresByStudentCode(@PathVariable("id") String studentCode){
-//        List<Score> scores = scoreService.findAll();
-//        List<Score> data = new ArrayList<>();
-//        for (Score clone : scores){
-//            if (clone.getStudent().getStudentCode().equals(studentCode)){
-//                data.add(clone);
-//            }
-//        }
         return ResponseEntity.ok(scoreService.getScoreByStudentCode(studentCode));
     }
 }
