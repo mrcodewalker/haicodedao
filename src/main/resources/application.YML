@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT}
+  port: 8080
 
 spring:
   servlet:
@@ -65,17 +65,17 @@ spring:
       allowed-origins: ${CORS_ALLOWED_ORIGINS}
   datasource:
     url: ${SPRING_DATASOURCE_URL}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+    driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
-    show-sql: ${JPA_SHOW_SQL}
+    show-sql: true
     hibernate:
-      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO}
+      ddl-auto: none
     properties:
       hibernate:
-        dialect: ${JPA_HIBERNATE_DIALECT}
-        format_sql: ${JPA_HIBERNATE_FORMAT_SQL}
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
 
 api:
   prefix: ${API_PREFIX}
