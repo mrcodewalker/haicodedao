@@ -18,32 +18,48 @@ public class Application {
 
 	public static void main(String[] args) {
 		// Tải biến môi trường từ file .env
-//		Dotenv dotenv = Dotenv.configure()
-//				.directory(".")
-//				.filename("SYSTEM32.env")
-//				.load();
-//
-//		System.setProperty("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID"));
-//		System.setProperty("GOOGLE_CLIENT_SECRET", dotenv.get("GOOGLE_CLIENT_SECRET"));
-//		System.setProperty("FACEBOOK_CLIENT_ID", dotenv.get("FACEBOOK_CLIENT_ID"));
-//		System.setProperty("FACEBOOK_CLIENT_SECRET", dotenv.get("FACEBOOK_CLIENT_SECRET"));
-//		System.setProperty("GITHUB_CLIENT_ID", dotenv.get("GITHUB_CLIENT_ID"));
-//		System.setProperty("GITHUB_CLIENT_SECRET", dotenv.get("GITHUB_CLIENT_SECRET"));
-//		System.setProperty("SPRING_DATASOURCE_URL", dotenv.get("SPRING_DATASOURCE_URL"));
-//		System.setProperty("SPRING_DATASOURCE_USERNAME", dotenv.get("SPRING_DATASOURCE_USERNAME"));
-//		System.setProperty("SPRING_DATASOURCE_PASSWORD", dotenv.get("SPRING_DATASOURCE_PASSWORD"));
-//		System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
-//		System.setProperty("JWT_EXPIRATION", dotenv.get("JWT_EXPIRATION"));
+		Dotenv dotenv = Dotenv.configure()
+				.directory(".")
+				.filename("SYSTEM32.env") // Đảm bảo tệp .env đúng tên
+				.load();
+
+		// Thiết lập các thuộc tính hệ thống từ các biến môi trường
+		System.setProperty("server.port", dotenv.get("SERVER_PORT", "8080"));
+		System.setProperty("spring.datasource.url", dotenv.get("SPRING_DATASOURCE_URL", "jdbc:mysql://localhost:4306/clone"));
+		System.setProperty("spring.datasource.username", dotenv.get("SPRING_DATASOURCE_USERNAME", "root"));
+		System.setProperty("spring.datasource.password", dotenv.get("SPRING_DATASOURCE_PASSWORD", "123456789"));
+		System.setProperty("spring.datasource.driver-class-name", dotenv.get("SPRING_DATASOURCE_DRIVER_CLASS_NAME", "com.mysql.cj.jdbc.Driver"));
+		System.setProperty("spring.jpa.show-sql", dotenv.get("JPA_SHOW_SQL", "true"));
+		System.setProperty("spring.jpa.hibernate.ddl-auto", dotenv.get("JPA_HIBERNATE_DDL_AUTO", "none"));
+		System.setProperty("spring.jpa.properties.hibernate.dialect", dotenv.get("JPA_HIBERNATE_DIALECT", "org.hibernate.dialect.MySQL8Dialect"));
+		System.setProperty("spring.jpa.properties.hibernate.format_sql", dotenv.get("JPA_HIBERNATE_FORMAT_SQL", "true"));
+		System.setProperty("api.prefix", dotenv.get("API_PREFIX", "api/v1"));
+		System.setProperty("jwt.secret", dotenv.get("JWT_SECRET", "Z54uiPhveohL/uORp8a8rHhu0qalR4Mj+aIOz5ZA5zY="));
+		System.setProperty("jwt.expiration", dotenv.get("JWT_EXPIRATION", "8640000"));
+		System.setProperty("google.client.id", dotenv.get("GOOGLE_CLIENT_ID"));
+		System.setProperty("google.client.secret", dotenv.get("GOOGLE_CLIENT_SECRET"));
+		System.setProperty("google.redirect.uri", dotenv.get("GOOGLE_REDIRECT_URI"));
+		System.setProperty("google.scope", dotenv.get("GOOGLE_SCOPE"));
+		System.setProperty("facebook.client.id", dotenv.get("FACEBOOK_CLIENT_ID"));
+		System.setProperty("facebook.client.secret", dotenv.get("FACEBOOK_CLIENT_SECRET"));
+		System.setProperty("facebook.redirect.uri", dotenv.get("FACEBOOK_REDIRECT_URI"));
+		System.setProperty("facebook.scope", dotenv.get("FACEBOOK_SCOPE"));
+		System.setProperty("facebook.user.info.uri", dotenv.get("FACEBOOK_USER_INFO_URI"));
+		System.setProperty("github.client.id", dotenv.get("GITHUB_CLIENT_ID"));
+		System.setProperty("github.client.secret", dotenv.get("GITHUB_CLIENT_SECRET"));
+		System.setProperty("github.redirect.uri", dotenv.get("GITHUB_REDIRECT_URI"));
+		System.setProperty("github.scope", dotenv.get("GITHUB_SCOPE"));
+		System.setProperty("cors.allowed.origins", dotenv.get("CORS_ALLOWED_ORIGINS"));
 
 		// Khởi động ứng dụng Spring Boot
 		SpringApplication.run(Application.class, args);
 	}
 	@Bean
-	public DataSource localHost(){
+	public DataSource dataSource() {
 		return DataSourceBuilder.create()
-				.url("jdbc:mysql://localhost:4306/clone")
-				.username("root")
-				.password("123456789")
+				.url(System.getProperty("SPRING_DATASOURCE_URL", "jdbc:mysql://localhost:4306/clone")) // Giá trị mặc định
+				.username(System.getProperty("SPRING_DATASOURCE_USERNAME", "root")) // Giá trị mặc định
+				.password(System.getProperty("SPRING_DATASOURCE_PASSWORD", "123456789")) // Giá trị mặc định
 				.driverClassName("com.mysql.cj.jdbc.Driver")
 				.build();
 	}

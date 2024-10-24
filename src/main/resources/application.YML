@@ -1,0 +1,122 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 15MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: ${GOOGLE_SCOPE}
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+            authorization-grant-type: authorization_code
+            client-name: Google
+            provider: google
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            scope: ${FACEBOOK_SCOPE}
+            redirect-uri: ${FACEBOOK_REDIRECT_URI}
+            authorization-grant-type: authorization_code
+            user-name-attribute: id
+            client-name: Facebook
+            provider: facebook
+            user-info-uri: ${FACEBOOK_USER_INFO_URI}
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: ${GITHUB_SCOPE}
+            redirect-uri: ${GITHUB_REDIRECT_URI}
+            authorization-grant-type: authorization_code
+            client-name: GitHub
+            provider: github
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: login
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+          facebook:
+            authorization-uri: https://www.facebook.com/v17.0/dialog/oauth
+            token-uri: https://graph.facebook.com/v17.0/oauth/access_token
+            user-info-uri: ${FACEBOOK_USER_INFO_URI}
+            user-name-attribute: id
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: id
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  mvc:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    show-sql: ${JPA_SHOW_SQL}
+    hibernate:
+      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO}
+    properties:
+      hibernate:
+        dialect: ${JPA_HIBERNATE_DIALECT}
+        format_sql: ${JPA_HIBERNATE_FORMAT_SQL}
+
+api:
+  prefix: ${API_PREFIX}
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+#    url: jdbc:mysql://103.184.113.97:4306/codewalker
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    username: admin
+#    password: admin123
+
+#
+#server:
+#  port: 8080
+#
+#spring:
+#  http:
+#    encoding:
+#      charset: UTF-8
+#      enabled: true
+#      force: true
+#  mvc:
+#    cors:
+#      allowed-origins: http://localhost:4200
+#  datasource:
+#    url: ${SPRING_DATASOURCE_URL}
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    username: ${SPRING_DATASOURCE_USERNAME}
+#    password: ${SPRING_DATASOURCE_PASSWORD}
+#  jpa:
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: none
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+#        format_sql: true
+#
+#api:
+#  prefix: api/v1
+#jwt:
+#  secret: ${JWT_SECRET}
+#  expiration: ${JWT_EXPIRATION}
