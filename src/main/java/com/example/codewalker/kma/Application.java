@@ -38,13 +38,13 @@ public class Application {
 		// Khởi động ứng dụng Spring Boot
 		SpringApplication.run(Application.class, args);
 	}
-//	@Bean
-//	public DataSource localHost(){
-//		return DataSourceBuilder.create()
-//				.url("jdbc:mysql://localhost:4306/clone")
-//				.username("root")
-//				.password("123456789")
-//				.driverClassName("com.mysql.cj.jdbc.Driver")
-//				.build();
-//	}
+	@Bean
+	public DataSource localHost(){
+		return DataSourceBuilder.create()
+				.url("jdbc:mysql://localhost:4306/clone")
+				.username("root")
+				.password("123456789")
+				.driverClassName("com.mysql.cj.jdbc.Driver")
+				.build();
+	}
 }

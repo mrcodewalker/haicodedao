@@ -3,14 +3,12 @@ package com.example.codewalker.kma.filters;
 import com.example.codewalker.kma.exceptions.InvalidParamException;
 import com.example.codewalker.kma.models.User;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -28,11 +26,9 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    private final String jwtSecret = "Z54uiPhveohL/uORp8a8rHhu0qalR4Mj+aIOz5ZA5zY=";
+    private final long jwtExpiration = 8640000L;
 
-    @Value("${jwt.expiration}")
-    private long jwtExpiration;
     // Tạo token
     public String generateToken(User user) throws InvalidParamException {
         Map<String, Object> claims = new HashMap<>();
@@ -68,7 +64,16 @@ public class JwtTokenProvider {
         final Claims claims = this.extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+        return claims.getSubject();
+    }
+    public boolean checkExtractToken(String token, String username){
+        if (this.getUsernameFromToken(token).equalsIgnoreCase(username)){
+            return true;
+        }
+        return false;
+    }
     // Lấy thông tin từ token
     public Claims getClaims(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
