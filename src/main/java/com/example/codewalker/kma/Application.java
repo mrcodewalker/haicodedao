@@ -54,13 +54,4 @@ public class Application {
 		// Khởi động ứng dụng Spring Boot
 		SpringApplication.run(Application.class, args);
 	}
-	@Bean
-	public DataSource dataSource() {
-		return DataSourceBuilder.create()
-				.url(System.getProperty("SPRING_DATASOURCE_URL", "jdbc:mysql://localhost:4306/clone")) // Giá trị mặc định
-				.username(System.getProperty("SPRING_DATASOURCE_USERNAME", "root")) // Giá trị mặc định
-				.password(System.getProperty("SPRING_DATASOURCE_PASSWORD", "123456789")) // Giá trị mặc định
-				.driverClassName("com.mysql.cj.jdbc.Driver")
-				.build();
-	}
 }
