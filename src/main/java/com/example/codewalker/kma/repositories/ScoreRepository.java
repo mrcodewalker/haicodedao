@@ -21,5 +21,6 @@ public interface ScoreRepository extends JpaRepository<Score,Long> {
     List<Long> findDistinctSubjectIds();
     @Query(value = "SELECT * FROM scores s WHERE s.semester = (SELECT subQuery.semester FROM scores subQuery ORDER BY subQuery.id DESC LIMIT 1)", nativeQuery = true)
     List<Score> findScoresWithLatestSemester();
-
+    @Query("SELECT s FROM Score s WHERE s.student.studentCode IN (:studentCode)")
+    List<Score> findListScoreByStudentCode(@Param("studentCode") List<String> studentCode);
 }

@@ -23,4 +23,6 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     List<String> findDistinctBlockDetail();
     @Query("SELECT DISTINCT SUBSTRING(st.studentCode, 1, 2) FROM Student st")
     List<String> findDistinctMajor();
+    @Query("SELECT s FROM Student s WHERE s.studentCode IN (:studentCode)")
+    List<Student> findListStudentByStudentCode(@Param("studentCode") List<String> studentCode);
 }

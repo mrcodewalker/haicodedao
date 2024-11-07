@@ -76,7 +76,9 @@ public class ScoreController {
         String[] lines = docText.split("\\r?\\n");
         int rows = -1;
         int count = 0;
+        System.out.println("Begin startFor 1 "+new Date().getTime());
         for (String line : lines) {
+
             int spaceIndex = line.indexOf(" ");
 
             if (spaceIndex != -1) {
@@ -150,6 +152,7 @@ public class ScoreController {
 ////                System.out.println(entry.getValue());
 //            }
 //        }
+        System.out.println("Finish startFor 1 "+new Date().getTime());
         for (Map.Entry<String, Integer> entry: allSubjects.entrySet()){
             if (entry.getValue()>1){
                 this.specialCase.add(Pair.of(entry.getKey(), entry.getValue()));
@@ -160,7 +163,14 @@ public class ScoreController {
         collectAllSubjects(file);
         String previousLine = "";
         String previousSubject = "";
+//        List<Student> lstStudent = new ArrayList<>();
+        Map<String,Student> mapStudent = new HashMap<>();
+        Map<String,List<Score>> mapScore = new HashMap<>();
+        Map<String,Subject> mapSubject = new HashMap<>();
+        List<Score> lstScore = new ArrayList<>();
+        System.out.println("Begin startFor 2 "+new Date().getTime());
         for (String line : lines) {
+            //System.out.println("Begin startFor 2 "+new Date().getTime());
             int spaceIndex = line.indexOf(" ");
 
             if (spaceIndex != -1) {
@@ -237,12 +247,16 @@ public class ScoreController {
                                     .build();
 
 //                            Student student = this.studentService.findByStudentCode(studentCode);
-
-                            if (studentService.existByStudentCode(studentCode)){
-                                student.setStudentId(studentService.findByStudentCode(studentCode).getStudentId());
+                            mapStudent.put(studentCode, student);
+                            if(!mapScore.containsKey(studentCode)){
+                                mapScore.put(studentCode,new ArrayList<>());
                             }
 
-                            studentService.createStudent(student);
+//                            if (studentService.existByStudentCode(studentCode)){
+//                                student.setStudentId(studentService.findByStudentCode(studentCode).getStudentId());
+//                            }
+
+//                            studentService.createStudent(student);
 
                             if (rows<0||this.listSubjectsName.size()==0) continue;
                             if (rows>this.listSubjectsName.size()) continue;
@@ -258,9 +272,16 @@ public class ScoreController {
                                     }
                                 }
                             }
+
+                            String subjectName = this.listSubjectsName.get(rows);
+                            if(!mapSubject.containsKey(subjectName)){
+                                mapSubject.put(subjectName, subjectService.findSubjectByName(this.listSubjectsName.get(rows)));
+                            }
+                            Subject oldSubject = mapSubject.get(subjectName);
+
                             Subject subject = Subject.builder()
                                     .subjectName(this.listSubjectsName.get(rows))
-                                    .id(subjectService.findSubjectByName(this.listSubjectsName.get(rows)).getId())
+                                    .id(oldSubject.getId())
                                     .build();
 
                                 Score score = Score.builder()
@@ -274,6 +295,7 @@ public class ScoreController {
                                         .semester(semester)
                                         .build();
 //                                System.out.println(score);
+                            mapScore.get(studentCode).add(score);
 //                                scoreService.createScore(score);
 //                            graphs.add(Graph.builder()
 //                                    .scoreFirst(scoreFirst)
@@ -304,6 +326,9 @@ public class ScoreController {
             }
             previousLine = line;
         }
+        System.out.println("Finish startFor 2 "+new Date().getTime());
+        this.scoreService.saveData(mapScore, mapStudent);
+        System.out.println("Finish saveData 2 "+new Date().getTime());
 //        if (graphs.size()>0) {
 //            this.graphService.createListScore(graphs);
 //        }
@@ -504,7 +529,7 @@ public class ScoreController {
             }
             int cnt = 0;
             for (String clone : listSubjectsName) {
-                System.out.println(cnt + " " + clone);
+//                System.out.println(cnt + " " + clone);
                 cnt++;
             }
         }
@@ -734,8 +759,8 @@ public class ScoreController {
                                     .subject(subject)
                                     .semester(semester)
                                     .build();
-//                            scoreService.createScore(score);
-////                                System.out.println(score);
+                            scoreService.createScore(score);
+                                System.out.println(score);
 
 //                            graphs.add(Graph.builder()
 //                                    .scoreFirst(scoreFirst)
