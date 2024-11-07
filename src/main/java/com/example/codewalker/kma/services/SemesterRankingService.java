@@ -1,5 +1,6 @@
 package com.example.codewalker.kma.services;
 
+import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.models.Semester;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
@@ -12,6 +13,7 @@ import com.example.codewalker.kma.models.SemesterRanking;
 import com.example.codewalker.kma.repositories.SemesterRankingRepository;
 import com.example.codewalker.kma.repositories.SemesterRepository;
 import com.example.codewalker.kma.responses.SemesterRankingResponse;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,14 +34,6 @@ public class SemesterRankingService implements ISemesterRankingService{
     private final StudentFailedService studentFailedService;
     private final SubjectService subjectService;
     private List<SemesterRanking> cachedRankings;
-//    @PostConstruct
-//    private void init() {
-//        refreshCache();
-//    }
-//
-//    private synchronized void refreshCache() {
-//        this.cachedRankings = semesterRankingRepository.findAll();
-//    }
 
     @Override
     public void updateRanking() {
@@ -183,22 +177,60 @@ public class SemesterRankingService implements ISemesterRankingService{
     }
 
     @Override
-    public List<SemesterRankingResponse> findRanking(String studentCode) {
+    public List<SemesterRankingResponse> findRanking(String studentCode) throws DataNotFoundException {
         studentCode = studentCode.toUpperCase();
         List<SemesterRankingResponse> responses = new ArrayList<>();
-        responses.add(
-                SemesterRankingResponse.convert(
-                        this.scholarshipRepository.findByStudentCode(studentCode)
-                )
+        List<Object[]> scholarships = this.semesterRankingRepository.findTopStudents(
+                studentCode.substring(0, 4) + "%", studentCode
         );
-        List<Scholarship> scholarships = this.scholarshipRepository.findTopRankingsByStudentCodes(
-                studentCode.substring(0,4)
-        );
-        responses.add(SemesterRankingResponse.convert(scholarships.get(1)));
-        responses.add(SemesterRankingResponse.convert(scholarships.get(0)));
-        responses.add(SemesterRankingResponse.convert(scholarships.get(2)));
+
+        if (scholarships.size() < 3) {
+            throw new DataNotFoundException("Can not be filtered right now!");
+        }
+
+        for (int count = 0; count < scholarships.size(); count++) {
+            Object[] scholarship = scholarships.get(count);
+            Long ranking = (Long) scholarship[0];
+            String studentCodeFromDb = (String) scholarship[1];
+            String studentName = (String) scholarship[2];
+            String studentClass = (String) scholarship[3];
+            Float gpa = (Float) scholarship[4];
+            Float asiaGpa = (Float) scholarship[5];
+
+            SemesterRankingResponse response = SemesterRankingResponse.builder()
+                    .ranking(ranking)
+                    .studentCode(studentCodeFromDb)
+                    .studentName(studentName)
+                    .studentClass(studentClass)
+                    .gpa(gpa)
+                    .asiaGpa(asiaGpa)
+                    .build();
+
+            responses.add(response);  // Thêm vào cuối danh sách
+        }
+
+        boolean found = false;
+
+        // Kiểm tra xem studentCode có nằm trong responses không
+        for (SemesterRankingResponse resp : responses) {
+            if (resp.getStudentCode().equals(studentCode)) {
+                // Di chuyển sinh viên có studentCode trùng lên đầu danh sách
+                responses.add(0, responses.remove(responses.indexOf(resp))); // Di chuyển sinh viên vào đầu danh sách
+                found = true;  // Đánh dấu là đã tìm thấy
+                break;  // Thoát khỏi vòng lặp nếu đã tìm thấy
+            }
+        }
+
+        // Nếu không tìm thấy studentCode, di chuyển phần tử cuối lên đầu
+        if (!found && !responses.isEmpty()) {
+            SemesterRankingResponse lastElement = responses.remove(responses.size() - 1); // Lấy phần tử cuối
+            responses.add(0, lastElement); // Di chuyển phần tử cuối lên đầu danh sách
+        }
+
         return responses;
     }
+
+
 
     @Override
     public List<SubjectResponse> findSubjects(String studentCode) {
@@ -265,5 +297,22 @@ public class SemesterRankingService implements ISemesterRankingService{
                     .build());
         }
         return result;
+    }
+    public List<SemesterRankingResponse> formData(List<SemesterRanking> semesterRankings) {
+        List<SemesterRankingResponse> responses = new ArrayList<>();
+        for (int i = 0; i < semesterRankings.size(); i++) {
+            SemesterRanking semesterRanking = semesterRankings.get(i);
+            Student student = semesterRanking.getStudent();
+
+            responses.add(SemesterRankingResponse.builder()
+                    .gpa(semesterRanking.getGpa())
+                    .asiaGpa(semesterRanking.getAsiaGpa())
+                    .ranking(i + 1L)  // Đặt thứ hạng từ 1
+                    .studentName(student.getStudentName())
+                    .studentClass(student.getStudentClass())
+                    .studentCode(student.getStudentCode())
+                    .build());
+        }
+        return responses;
     }
 }

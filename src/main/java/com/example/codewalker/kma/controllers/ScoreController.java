@@ -2,15 +2,13 @@ package com.example.codewalker.kma.controllers;
 
 import com.example.codewalker.kma.dtos.CreateScoreDTO;
 import com.example.codewalker.kma.exceptions.DataNotFoundException;
+import com.example.codewalker.kma.models.Graph;
 import com.example.codewalker.kma.models.Score;
 import com.example.codewalker.kma.models.Student;
 import com.example.codewalker.kma.models.Subject;
 import com.example.codewalker.kma.repositories.SubjectRepository;
 import com.example.codewalker.kma.responses.StatusResponse;
-import com.example.codewalker.kma.services.ScoreService;
-import com.example.codewalker.kma.services.SemesterService;
-import com.example.codewalker.kma.services.StudentService;
-import com.example.codewalker.kma.services.SubjectService;
+import com.example.codewalker.kma.services.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -44,7 +42,7 @@ public class ScoreController {
     private List<String> listSubjectsName = new ArrayList<>();
     private List<Pair<String,Integer>> specialCase = new ArrayList<>();
     private Integer totalSubjects = 0;
-
+    private final GraphService graphService;
     @PostMapping("/score")
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
@@ -56,12 +54,13 @@ public class ScoreController {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File không hợp lệ.");
         }
+        List<Graph> graphs = new ArrayList<>();
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
         PDDocument pdfDocument = PDDocument.load(file.getInputStream());
-        System.out.println(pdfDocument.getPages().getCount());
+//        System.out.println(pdfDocument.getPages().getCount());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
 
@@ -142,7 +141,6 @@ public class ScoreController {
                     };
                 }
             }
-
         }
 //        for (Map.Entry<String, String> entry: subjects.entrySet()){ // All Subjects
 //            if (!this.checkContainsSubject(entry.getValue())){
@@ -277,6 +275,26 @@ public class ScoreController {
                                         .build();
 //                                System.out.println(score);
 //                                scoreService.createScore(score);
+//                            graphs.add(Graph.builder()
+//                                    .scoreFirst(scoreFirst)
+//                                    .scoreFinal(scoreFinal)
+//                                    .scoreText(scoreText)
+//                                    .scoreSecond(scoreSecond)
+//                                    .scoreOverall(scoreOverRall)
+//                                    .student(student)
+//                                    .subject(subject)
+//                                    .semester(semester)
+//                                    .build());
+//                                graphService.createScore(Graph.builder()
+//                                    .scoreFirst(scoreFirst)
+//                                    .scoreFinal(scoreFinal)
+//                                    .scoreText(scoreText)
+//                                    .scoreSecond(scoreSecond)
+//                                    .scoreOverall(scoreOverRall)
+//                                    .student(student)
+//                                    .subject(subject)
+//                                    .semester(semester)
+//                                    .build());
                                 // TITLE END
 //                                System.out.println(score);
 
@@ -286,7 +304,9 @@ public class ScoreController {
             }
             previousLine = line;
         }
-
+//        if (graphs.size()>0) {
+//            this.graphService.createListScore(graphs);
+//        }
         pdfDocument.close();
         return ResponseEntity.ok(
                 StatusResponse.builder()
@@ -351,7 +371,6 @@ public class ScoreController {
                     } else break;
                 }
             }
-
         }
         List<Subject> subjectList = subjectService.findAll();
         List<String> subjectsName = new ArrayList<>();
@@ -501,6 +520,8 @@ public class ScoreController {
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
+        List<Score> list = new ArrayList<>();
+        List<Graph> graphs = new ArrayList<>();
         PDDocument pdfDocument = PDDocument.load(file.getInputStream());
 
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
@@ -716,13 +737,36 @@ public class ScoreController {
 //                            scoreService.createScore(score);
 ////                                System.out.println(score);
 
+//                            graphs.add(Graph.builder()
+//                                    .scoreFirst(scoreFirst)
+//                                    .scoreFinal(scoreFinal)
+//                                    .scoreText(scoreText)
+//                                    .scoreSecond(scoreSecond)
+//                                    .scoreOverall(scoreOverRall)
+//                                    .student(student)
+//                                    .subject(subject)
+//                                    .semester(semester)
+//                                    .build());
+//                            Graph graph = Graph.builder()
+//                                    .scoreFirst(scoreFirst)
+//                                    .scoreFinal(scoreFinal)
+//                                    .scoreText(scoreText)
+//                                    .scoreSecond(scoreSecond)
+//                                    .scoreOverall(scoreOverRall)
+//                                    .student(student)
+//                                    .subject(subject)
+//                                    .semester(semester)
+//                                    .build();
+//                            graphService.createScore(graph);
                         }
                     }
                 }
             }
             previousLine = line;
         }
-
+//        if (graphs.size()>0){
+//            this.graphService.createListScore(graphs);
+//        }
         pdfDocument.close();
         return ResponseEntity.ok(
                 StatusResponse.builder()

@@ -48,4 +48,26 @@ public interface SemesterRankingRepository extends JpaRepository<SemesterRanking
             "WHERE st.studentCode LIKE CONCAT(:filterCode, '%') " +
             "ORDER BY sr.gpa DESC")
     List<SemesterRanking> findTopWithMatchingFilterCode(@Param("filterCode") String filterCode, Pageable pageable);
+    @Query(value = "SELECT ranked.ranking, ranked.student_code, ranked.student_name, ranked.student_class, ranked.gpa, ranked.asia_gpa " +
+            "FROM ( " +
+            "    SELECT ROW_NUMBER() OVER (ORDER BY sr.gpa DESC) AS ranking, st.student_code, st.student_name, st.student_class, sr.gpa, sr.asia_gpa " +
+            "    FROM semester_ranking sr " +
+            "    JOIN students st ON sr.student_id = st.student_id " +
+            "    WHERE st.student_code LIKE :filterCode " +
+            ") AS ranked " +
+            "WHERE ranked.student_code = :studentCode OR ranked.ranking <= 3 " +
+            "ORDER BY ranked.ranking " +
+            "LIMIT 4", nativeQuery = true)
+    List<Object[]> findTopStudents(@Param("filterCode") String filterCode, @Param("studentCode") String studentCode);
+    @Query(value = "SELECT ranked.ranking, ranked.student_code, ranked.student_name, ranked.student_class, ranked.gpa, ranked.asia_gpa " +
+            "FROM ( " +
+            "    SELECT ROW_NUMBER() OVER (ORDER BY sr.gpa DESC) AS ranking, " +
+            "           st.student_code, st.student_name, st.student_class, sr.gpa, sr.asia_gpa " +
+            "    FROM semester_ranking sr " +
+            "    JOIN students st ON sr.student_id = st.student_id " +
+            "    WHERE st.student_code LIKE :filterCode " +
+            ") AS ranked " +
+            "WHERE ranked.student_code = :studentCode " +
+            "ORDER BY ranked.ranking", nativeQuery = true)
+    Object[] findStudentRanking(@Param("filterCode") String filterCode, @Param("studentCode") String studentCode);
 }

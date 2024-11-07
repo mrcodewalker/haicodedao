@@ -150,6 +150,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 && requestMethod.equals("GET")) {
             return true;
         }
+        if (requestPath.contains(String.format("%s/semester/scholarship", apiPrefix))
+                && requestMethod.equals("GET")) {
+            return true;
+        }
         if (requestPath.contains(String.format("%s/semester/filter/scholarship", apiPrefix))
                 && requestMethod.equals("POST")) {
             return true;

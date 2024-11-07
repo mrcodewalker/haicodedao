@@ -4,24 +4,19 @@ import com.example.codewalker.kma.dtos.CreateScoreDTO;
 import com.example.codewalker.kma.dtos.GraphRequestDTO;
 import com.example.codewalker.kma.dtos.ScoreDTO;
 import com.example.codewalker.kma.exceptions.DataNotFoundException;
-import com.example.codewalker.kma.models.Score;
-import com.example.codewalker.kma.models.Semester;
-import com.example.codewalker.kma.models.Student;
-import com.example.codewalker.kma.models.Subject;
+import com.example.codewalker.kma.models.*;
 import com.example.codewalker.kma.repositories.ScoreRepository;
 import com.example.codewalker.kma.repositories.StudentRepository;
 import com.example.codewalker.kma.repositories.SubjectRepository;
 import com.example.codewalker.kma.responses.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,7 +27,8 @@ public class ScoreService implements IScoreService{
     private final SubjectRepository subjectRepository;
     private final StudentService studentService;
     private final SubjectService subjectService;
-
+    private final GraphService graphService;
+    public static Map<String,List<GraphFilterSubjectResponse>> cache = new HashMap<>();
     @Override
     public ListScoreResponse getScoreByStudentCode(String studentCode) {
         Student student = this.studentService.findByStudentCode(studentCode);
@@ -63,8 +59,10 @@ public class ScoreService implements IScoreService{
         return scoreRepository.findByStudent(student);
     }
     @Override
+    @Transactional
     public Score createScore(Score score) {
         List<Score> data = scoreRepository.findByStudentCode(score.getStudent().getStudentCode());
+        List<Graph> graphs = new ArrayList<>();
         for (Score entry : data){
             if (entry.getSubject().getSubjectName().equals(score.getSubject().getSubjectName())
         || Normalizer.normalize(entry.getSubject().getSubjectName(), Normalizer.Form.NFD).replaceAll("\\p{M}", "").equalsIgnoreCase(
@@ -76,9 +74,31 @@ public class ScoreService implements IScoreService{
                 score.setScoreText(score.getScoreText());
                 score.setScoreSecond(score.getScoreSecond());
             return scoreRepository.save(score);
+            }  else {
+                graphs.add(
+                        Graph.builder()
+                                .semester(score.getSemester())
+                                .scoreText(score.getScoreText())
+                                .subject(score.getSubject())
+                                .scoreFirst(score.getScoreFirst())
+                                .scoreSecond(score.getScoreSecond())
+                                .scoreFinal(score.getScoreFinal())
+                                .scoreOverall(score.getScoreOverall())
+                                .student(score.getStudent())
+                                .build()
+                );
             }
         }
+        if (graphs.size()>0) {
+            this.graphService.createListScore(graphs);
+        }
         return scoreRepository.save(score);
+    }
+
+    @Override
+    @Transactional
+    public void createListScores(List<Score> scores) {
+        this.scoreRepository.saveAll(scores);
     }
 
     @Override
@@ -147,7 +167,8 @@ public class ScoreService implements IScoreService{
             if (score<8) lessThanEight++;
             if (score<9) lessThanNine++;
             if (score>=9) greaterThanNine++;
-            if (score >= 8 && score < 10) eightToTen++;
+
+            if (score >= 8 && score <= 10) eightToTen++;
             if (score >= 7 && score < 8) sevenToEight++;
             if (score >= 5 && score < 7) fiveToSeven++;
             if (score < 5) lessThanFive++;
@@ -192,7 +213,7 @@ public class ScoreService implements IScoreService{
             alertMessage.add("Tỷ lệ học sinh yếu quá cao, không phản ánh hết mức độ yêu cầu môn học!");
             valid = false;
         }
-        return GraphFilterSubjectResponse.builder()
+        GraphFilterSubjectResponse response = GraphFilterSubjectResponse.builder()
                 .subjectName(graphRequestDTO.getSubjectName())
                 .score(scores)
                 .count(counts.stream().map(String::valueOf).collect(Collectors.toList()))
@@ -210,6 +231,7 @@ public class ScoreService implements IScoreService{
                 .valid(valid)
                 .alertMessage(alertMessage)
                 .build();
+        return response;
     }
     @Override
     public List<SemesterSubjectsResponse> subjectResponse() {
@@ -229,6 +251,9 @@ public class ScoreService implements IScoreService{
 
     @Override
     public List<GraphFilterSubjectResponse> getInfoSubjects(String yearCourse) throws DataNotFoundException {
+        if (cache.containsKey(yearCourse)){
+            return cache.get(yearCourse);
+        }
         List<GraphFilterSubjectResponse> result = new ArrayList<>();
         List<Subject> subjects = this.subjectService.findAll();
         for (Subject clone : subjects){
@@ -261,6 +286,7 @@ public class ScoreService implements IScoreService{
 
             return Double.compare(maxR2, maxR1);
         });
+        this.cache.put(yearCourse, result);
         return result;
     }
 }

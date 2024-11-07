@@ -5,6 +5,7 @@ import com.example.codewalker.kma.exceptions.DataNotFoundException;
 import com.example.codewalker.kma.services.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class FileUploadController{
         try {
             return ResponseEntity.ok(fileUploadService.uploadFile(file, userId));
         } catch (Exception e){
-            return ResponseEntity.ok("Can not upload file right now!");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Can not upload file right now!");
         }
     }
     @GetMapping("/download")
@@ -35,7 +36,7 @@ public class FileUploadController{
         try {
             return ResponseEntity.ok(fileUploadService.historyUpdate(pageNumber));
         } catch (Exception e){
-            return ResponseEntity.ok("Can not upload file right now!");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Can not upload file right now!");
         }
     }
 }

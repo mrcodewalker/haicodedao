@@ -598,7 +598,7 @@ public class SemesterController {
         return ResponseEntity.ok("Ranking has been updated");
     }
     @GetMapping("/scholarship")
-    public ResponseEntity<?> ScholarshipRanking(@RequestParam("student_code") String studentCode){
+    public ResponseEntity<?> ScholarshipRanking(@RequestParam("student_code") String studentCode) throws DataNotFoundException {
         return ResponseEntity.ok(
                 SemesterResponse.builder()
                         .rankingResponses(this.semesterRankingService.findRanking(studentCode))

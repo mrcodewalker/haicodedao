@@ -43,6 +43,7 @@ public class RankingService implements IRankingService {
     @Override
     @Transactional
     public void  updateGPA() throws Exception {
+        ScoreService.cache.clear();
         List<Student> studentList = studentRepository.findAll();
         // Fetch all scores and subjects in one query
         List<Score> allScores = scoreRepository.findAll();

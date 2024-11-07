@@ -19,7 +19,7 @@ public class Application {
 	public static void main(String[] args) {
 		// Tải biến môi trường từ file .env
 		Dotenv dotenv = Dotenv.configure()
-				.directory("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma") // Chỉ định thư mục chứa file .env
+				.directory(".") // Chỉ định thư mục chứa file .env
 				.filename("SYSTEM32.env") // Tên file .env
 				.load();
 

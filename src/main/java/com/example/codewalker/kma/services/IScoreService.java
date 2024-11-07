@@ -13,6 +13,7 @@ import java.util.List;
 public interface IScoreService {
     ListScoreResponse getScoreByStudentCode(String studentCode);
     Score createScore(Score score);
+    void createListScores(List<Score> scores);
     List<Score> findAll();
     void updateRanking();
     List<Score> createNewScore(CreateScoreDTO scoreDTO);

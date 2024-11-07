@@ -44,4 +44,21 @@ public class SemesterRankingResponse {
                 .studentClass(ranking.getStudent().getStudentClass())
                 .build();
     }
+    public static SemesterRankingResponse mappingFromObject(Object[] objects){
+        Long ranking = (Long) objects[0];
+        String studentCodeFromDb = (String) objects[1];
+        String studentName = (String) objects[2];
+        String studentClass = (String) objects[3];
+        Float gpa = (Float) objects[4];
+        Float asiaGpa = (Float) objects[5];
+
+        return SemesterRankingResponse.builder()
+                .ranking(ranking)
+                .studentCode(studentCodeFromDb)
+                .studentName(studentName)
+                .studentClass(studentClass)
+                .gpa(gpa)
+                .asiaGpa(asiaGpa)
+                .build();
+    }
 }

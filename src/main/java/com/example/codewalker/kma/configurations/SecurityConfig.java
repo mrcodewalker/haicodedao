@@ -50,7 +50,7 @@ public class SecurityConfig{
     private String apiPrefix = "api/v1";
     private final UserRepository userRepository;
     private Dotenv dotenv = Dotenv.configure()
-            .directory("C:\\Users\\ADMIN\\MyWebsite\\codewalker.kma\\codewalker.kma") // Chỉ định thư mục chứa file .env
+            .directory(".") // Chỉ định thư mục chứa file .env
             .filename("SYSTEM32.env") // Tên file .env
             .load();
     @Bean
