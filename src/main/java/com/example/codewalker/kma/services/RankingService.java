@@ -35,8 +35,6 @@ public class RankingService implements IRankingService {
     private final SubjectService subjectService;
     private final SemesterRepository semesterRepository;
     private final StudentFailedRepository studentFailedRepository;
-    private final PlatformTransactionManager transactionManager;
-    private final TransactionTemplate transactionTemplate;
     private List<Ranking> cachedRankings = new ArrayList<>();
     public Long setTimeOut = 2*1000L;
 
@@ -46,9 +44,6 @@ public class RankingService implements IRankingService {
         ScoreService.cache.clear();
         List<Student> studentList = studentRepository.findAll();
         // Fetch all scores and subjects in one query
-        List<Score> allScores = scoreRepository.findAll();
-        Map<String, List<Score>> scoresByStudent = allScores.stream()
-                .collect(Collectors.groupingBy(score -> score.getStudent().getStudentCode()));
 
         List<Subject> allSubjects = subjectService.findAll();
         Map<String, Subject> subjectMap = allSubjects.stream()
@@ -61,8 +56,8 @@ public class RankingService implements IRankingService {
             int count = 0;
             int subjects = 0;
 
-            List<Score> scoreList = scoresByStudent.get(student.getStudentCode());
-            if (scoreList != null) {
+            List<Score> scoreList = this.scoreRepository.findByStudentCode(student.getStudentCode());
+            if (scoreList.size()>0) {
                 for (Score score : scoreList) {
                     if (score.getSubject().getSubjectName().contains("Giáo dục thể chất")) {
                         continue;
@@ -86,7 +81,7 @@ public class RankingService implements IRankingService {
                             scoreValue = 3.0f;
                             break;
                         case "C+":
-                            scoreValue = 2.5f;
+                            scoreValue = 2.4f;
                             break;
                         case "C":
                             scoreValue = 2.0f;
@@ -96,6 +91,9 @@ public class RankingService implements IRankingService {
                             break;
                         case "D":
                             scoreValue = 1.0f;
+                            break;
+                        case "F":
+                            scoreValue = 0.0f;
                             break;
                         default:
                             continue;

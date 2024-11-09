@@ -35,4 +35,5 @@ public interface IUserService {
 
     StatusResponse updateAvatar(String id, String avatar, String token) throws DataNotFoundException;
     List<CollectUsersResponse> collectUsers();
+    StatusResponse existByEmailOrUserName(UserDTO userDTO);
 }

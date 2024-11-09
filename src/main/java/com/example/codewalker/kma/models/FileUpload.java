@@ -2,7 +2,9 @@ package com.example.codewalker.kma.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.cglib.core.Local;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -44,6 +46,7 @@ public class FileUpload {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate

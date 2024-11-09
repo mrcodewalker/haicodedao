@@ -37,7 +37,7 @@ public class ScoreController {
     private final StudentService studentService;
     private final SubjectRepository subjectRepository;
     private final ScoreService scoreService;
-    private final SemesterService semesterService;
+    private final FileUploadService fileUploadService;
     public List<String> errors = new ArrayList<>();
     private List<String> listSubjectsName = new ArrayList<>();
     private List<Pair<String,Integer>> specialCase = new ArrayList<>();
@@ -48,7 +48,8 @@ public class ScoreController {
     @Transactional
     public ResponseEntity<?> ReadPDFFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("semester") String semester
+            @RequestParam("semester") String semester,
+            @RequestParam("user_id") String userId
     ) throws Exception {
         // TITLE SCORE
         if (file.isEmpty()) {
@@ -167,7 +168,6 @@ public class ScoreController {
         Map<String,Student> mapStudent = new HashMap<>();
         Map<String,List<Score>> mapScore = new HashMap<>();
         Map<String,Subject> mapSubject = new HashMap<>();
-        List<Score> lstScore = new ArrayList<>();
         System.out.println("Begin startFor 2 "+new Date().getTime());
         for (String line : lines) {
             //System.out.println("Begin startFor 2 "+new Date().getTime());
@@ -266,9 +266,16 @@ public class ScoreController {
                             }
 
                             String subjectName = this.listSubjectsName.get(rows);
-                            if (!mapSubject.containsKey(subjectName)){
-                                mapSubject.put(subjectName, subjectService.findBySubjectName(subjectName));
-                            }
+                            mapSubject.computeIfAbsent(subjectName, key -> {
+                                 return (subjectService.findBySubjectName(key)==null) ?
+                                        subjectService.createSubject(
+                                                Subject.builder()
+                                                        .subjectName(key)
+                                                        .subjectCredits(2L)
+                                                        .build()
+                                        ) : subjectService.findBySubjectName(key);
+                            });
+
 
                             Subject subject = mapSubject.get(subjectName);
 
@@ -297,6 +304,7 @@ public class ScoreController {
 //        this.scoreService.saveData(mapScore, mapStudent);
         System.out.println("Finish saveData 2 "+new Date().getTime());
         // clear cache tu component Warning
+        this.fileUploadService.uploadFile(file, Long.valueOf(userId));
         ScoreService.cache.clear();
         pdfDocument.close();
         return ResponseEntity.ok(
@@ -331,6 +339,7 @@ public class ScoreController {
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
+        this.listSubjectsName.clear();
 
         PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
@@ -505,7 +514,8 @@ public class ScoreController {
     @Transactional
     public ResponseEntity<?> ReadPDFFileComplement(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("semester") String semester
+            @RequestParam("semester") String semester,
+            @RequestParam("user_id") String userId
     ) throws Exception {
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
@@ -741,6 +751,7 @@ public class ScoreController {
         System.out.println("Finish saveData 2 "+new Date().getTime());
         pdfDocument.close();
         // clear cache tu component Warning
+        this.fileUploadService.uploadFile(file, Long.valueOf(userId));
         ScoreService.cache.clear();
         return ResponseEntity.ok(
                 StatusResponse.builder()
