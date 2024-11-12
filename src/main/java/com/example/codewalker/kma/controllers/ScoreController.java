@@ -160,7 +160,9 @@ public class ScoreController {
         }
 //        System.out.println(this.specialCase);
         boolean passedSubjects = false;
+        System.out.println("Start collectAllSubjects "+new Date().getTime());
         collectAllSubjects(file);
+        System.out.println("Finish collectAllSubjects"+new Date().getTime());
         String previousLine = "";
         String previousSubject = "";
 //        List<Student> lstStudent = new ArrayList<>();
@@ -365,23 +367,24 @@ public class ScoreController {
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
-
+        System.out.println("Start PDDocument 1 "+new Date().getTime());
         PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
-
+        System.out.println("Start PDDocument 2 "+new Date().getTime());
         PDFTextStripper pdfTextStripper = new PDFTextStripper();
 
         pdfTextStripper.setStartPage(2);
-
+        System.out.println("Start PDDocument 3 "+new Date().getTime());
         PDPage firstPage = pdfDocument.getPage(0);
 
         String docText = pdfTextStripper.getText(pdfDocument);
-
+        System.out.println("Start PDDocument 4 "+new Date().getTime());
         Set<String> idSubjects = new HashSet<>();
 // Tách văn bản thành các dòng
         String[] lines = docText.split("\\r?\\n");
         int rows = 0;
         int count = 0;
+        System.out.println("Start Test count contains "+new Date().getTime());
         for (String line : lines) {
             int spaceIndex = line.indexOf(" ");
 
@@ -391,12 +394,15 @@ public class ScoreController {
                 String secondWord = line.substring(spaceIndex + 1);
 
                 if (firstWord.length() <= 2 && !firstWord.isEmpty() && firstWord.matches("[1-9][0-9]?")) {
+                    count++;
                     if (!idSubjects.contains(firstWord)) {
                         idSubjects.add(firstWord);
                     } else break;
                 }
             }
         }
+        System.out.println("Finish Test count contains "+new Date().getTime());
+        System.out.println("Test count contains : "+idSubjects.size());
         List<Subject> subjectList = subjectService.findAll();
         List<String> subjectsName = new ArrayList<>();
         for (Subject subject : subjectList) {
