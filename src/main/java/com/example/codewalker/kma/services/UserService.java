@@ -12,6 +12,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.PostConstruct;
+import jdk.jshell.Snippet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -245,6 +246,18 @@ public class UserService implements IUserService{
             );
         }
         return result;
+    }
+
+    @Override
+    public StatusResponse existByEmailOrUserName(UserDTO userDTO) {
+        List<User> user = this.userRepository.findExistUser(userDTO.getUsername(), userDTO.getEmail());
+        return (user.size()>0)
+                ? StatusResponse.builder()
+                    .status("666")
+                    .build()
+                : StatusResponse.builder()
+                    .status("200")
+                    .build();
     }
 
     public String getUsernameFromToken(String token) {

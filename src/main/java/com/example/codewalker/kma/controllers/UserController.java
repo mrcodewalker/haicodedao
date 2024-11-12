@@ -28,6 +28,10 @@ public class UserController {
     public ResponseEntity<?> registerAccount(@RequestBody UserDTO userDTO) throws Exception {
         return ResponseEntity.ok(this.userService.createUser(userDTO));
     }
+    @PostMapping("/check/data")
+    public ResponseEntity<?> checkDataValidAccount(@RequestBody UserDTO userDTO) throws Exception {
+        return ResponseEntity.ok(this.userService.existByEmailOrUserName(userDTO));
+    }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) throws Exception {
         return ResponseEntity.ok(this.userService.login(loginDTO.getUsername(), loginDTO.getPassword()));

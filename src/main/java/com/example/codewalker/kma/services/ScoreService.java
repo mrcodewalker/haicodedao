@@ -345,6 +345,7 @@ public class ScoreService implements IScoreService{
 
         List<Score> updateList = new ArrayList<>();
         List<Score> insertList = new ArrayList<>();
+
         for(String studentCode : mapStudent.keySet()){
             if(!dataScoreByStudentMap.containsKey(studentCode)){
                 dataScoreByStudentMap.put(studentCode,new ArrayList<>());

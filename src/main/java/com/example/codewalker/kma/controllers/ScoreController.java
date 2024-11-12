@@ -37,7 +37,7 @@ public class ScoreController {
     private final StudentService studentService;
     private final SubjectRepository subjectRepository;
     private final ScoreService scoreService;
-    private final SemesterService semesterService;
+    private final FileUploadService fileUploadService;
     public List<String> errors = new ArrayList<>();
     private List<String> listSubjectsName = new ArrayList<>();
     private List<Pair<String,Integer>> specialCase = new ArrayList<>();
@@ -48,7 +48,8 @@ public class ScoreController {
     @Transactional
     public ResponseEntity<?> ReadPDFFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("semester") String semester
+            @RequestParam("semester") String semester,
+            @RequestParam("user_id") String userId
     ) throws Exception {
         // TITLE SCORE
         if (file.isEmpty()) {
@@ -169,7 +170,6 @@ public class ScoreController {
         Map<String,Student> mapStudent = new HashMap<>();
         Map<String,List<Score>> mapScore = new HashMap<>();
         Map<String,Subject> mapSubject = new HashMap<>();
-        List<Score> lstScore = new ArrayList<>();
         System.out.println("Begin startFor 2 "+new Date().getTime());
         for (String line : lines) {
             //System.out.println("Begin startFor 2 "+new Date().getTime());
@@ -190,8 +190,9 @@ public class ScoreController {
                             rows++;
                         }
                         String data[] = secondWord.split(" ");
+
                         if (data[0].equals("0")) continue;
-                        if (data.length<8) continue;
+//                        if (data.length<8) continue;
                         String studentCode = data[1];
                         String studentName = "";
                         int mark = 4;
@@ -205,6 +206,30 @@ public class ScoreController {
                                 break;
                             }
                         }
+                        boolean checkFailedStudent = false;
+                        if (data.length>=mark+6){
+                            for (int i=mark+1;i<data.length;i++){
+                                if(data[i].contains("DC")
+                                || data[i].equalsIgnoreCase("đình")
+                                || data[i].equalsIgnoreCase("chỉ")
+                                || data[i].equalsIgnoreCase("n100")
+                                || data[i].equalsIgnoreCase("n25"))
+                                {
+                                    checkFailedStudent = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (data.length<mark+6||checkFailedStudent){
+                            String[] newData = new String[mark+6];
+
+                            System.arraycopy(data, 0, newData, 0, data.length);
+                            data = newData;
+                            for (int i=mark+1;i<data.length;i++){
+                                data[i] = "0";
+                            }
+                            data[data.length-1]="F";
+                        }
                         int cnt = 0;
                         boolean checkError = false;
                         String studentClass = data[mark];
@@ -214,7 +239,8 @@ public class ScoreController {
                                 cnt++;
                                 if (cnt==4) break;
                             } else {
-                                checkError=true;
+//                                checkError=true;
+                                cnt=4;
                                 break;
                             }
                         }
@@ -244,21 +270,13 @@ public class ScoreController {
                             Student student = Student.builder()
                                     .studentClass(studentClass)
                                     .studentCode(studentCode)
-//                                        .studentId(studentService.findByStudentCode(studentCode).getStudentId())
                                     .studentName(studentName)
                                     .build();
 
-//                            Student student = this.studentService.findByStudentCode(studentCode);
                             mapStudent.put(studentCode, student);
                             if(!mapScore.containsKey(studentCode)){
                                 mapScore.put(studentCode,new ArrayList<>());
                             }
-
-//                            if (studentService.existByStudentCode(studentCode)){
-//                                student.setStudentId(studentService.findByStudentCode(studentCode).getStudentId());
-//                            }
-
-//                            studentService.createStudent(student);
 
                             if (rows<0||this.listSubjectsName.size()==0) continue;
                             if (rows>this.listSubjectsName.size()) continue;
@@ -276,15 +294,18 @@ public class ScoreController {
                             }
 
                             String subjectName = this.listSubjectsName.get(rows);
-                            if(!mapSubject.containsKey(subjectName)){
-                                mapSubject.put(subjectName, subjectService.findSubjectByName(this.listSubjectsName.get(rows)));
-                            }
-                            Subject oldSubject = mapSubject.get(subjectName);
+                            mapSubject.computeIfAbsent(subjectName, key -> {
+                                 return (subjectService.findBySubjectName(key)==null) ?
+                                        subjectService.createSubject(
+                                                Subject.builder()
+                                                        .subjectName(key)
+                                                        .subjectCredits(2L)
+                                                        .build()
+                                        ) : subjectService.findBySubjectName(key);
+                            });
 
-                            Subject subject = Subject.builder()
-                                    .subjectName(this.listSubjectsName.get(rows))
-                                    .id(oldSubject.getId())
-                                    .build();
+
+                            Subject subject = mapSubject.get(subjectName);
 
                                 Score score = Score.builder()
                                         .scoreFirst(scoreFirst)
@@ -299,27 +320,6 @@ public class ScoreController {
 //                                System.out.println(score);
                             mapScore.get(studentCode).add(score);
 //                                scoreService.createScore(score);
-//                            graphs.add(Graph.builder()
-//                                    .scoreFirst(scoreFirst)
-//                                    .scoreFinal(scoreFinal)
-//                                    .scoreText(scoreText)
-//                                    .scoreSecond(scoreSecond)
-//                                    .scoreOverall(scoreOverRall)
-//                                    .student(student)
-//                                    .subject(subject)
-//                                    .semester(semester)
-//                                    .build());
-//                                graphService.createScore(Graph.builder()
-//                                    .scoreFirst(scoreFirst)
-//                                    .scoreFinal(scoreFinal)
-//                                    .scoreText(scoreText)
-//                                    .scoreSecond(scoreSecond)
-//                                    .scoreOverall(scoreOverRall)
-//                                    .student(student)
-//                                    .subject(subject)
-//                                    .semester(semester)
-//                                    .build());
-                                // TITLE END
 //                                System.out.println(score);
 
                         }
@@ -331,9 +331,9 @@ public class ScoreController {
         System.out.println("Finish startFor 2 "+new Date().getTime());
         this.scoreService.saveData(mapScore, mapStudent);
         System.out.println("Finish saveData 2 "+new Date().getTime());
-//        if (graphs.size()>0) {
-//            this.graphService.createListScore(graphs);
-//        }
+        // clear cache tu component Warning
+        this.fileUploadService.uploadFile(file, Long.valueOf(userId));
+        ScoreService.cache.clear();
         pdfDocument.close();
         return ResponseEntity.ok(
                 StatusResponse.builder()
@@ -367,7 +367,12 @@ public class ScoreController {
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
+<<<<<<< HEAD
         System.out.println("Start PDDocument 1 "+new Date().getTime());
+=======
+        this.listSubjectsName.clear();
+
+>>>>>>> c1ae0bbdcbae8a22d08a6c642e452409a238cf7e
         PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
         System.out.println("Start PDDocument 2 "+new Date().getTime());
@@ -545,7 +550,8 @@ public class ScoreController {
     @Transactional
     public ResponseEntity<?> ReadPDFFileComplement(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("semester") String semester
+            @RequestParam("semester") String semester,
+            @RequestParam("user_id") String userId
     ) throws Exception {
         Map<String, Integer> allSubjects = new LinkedHashMap<>();
         errors.add("N25");
@@ -652,6 +658,9 @@ public class ScoreController {
 //        System.out.println(this.specialCase);
         boolean passedSubjects = false;
         collectAllSubjectsFake(file);
+        Map<String,Student> mapStudent = new HashMap<>();
+        Map<String,List<Score>> mapScore = new HashMap<>();
+        Map<String,Subject> mapSubject = new HashMap<>();
         String previousLine = "";
         String previousSubject = "";
         for (String line : lines) {
@@ -722,20 +731,18 @@ public class ScoreController {
                             if (!Arrays.asList(invalidScores).contains(scoreText.toUpperCase())) continue;
                         } else continue;
                         if (scoreFirst>=0&&scoreSecond>=0&&scoreFinal>=0&&scoreOverRall>=0) {
-//
+
                             Student student = Student.builder()
                                     .studentClass(studentClass)
                                     .studentCode(studentCode)
-//                                        .studentId(studentService.findByStudentCode(studentCode).getStudentId())
                                     .studentName(studentName)
                                     .build();
 
-                            if (studentService.existByStudentCode(studentCode)){
-                                student.setStudentId(studentService.findByStudentCode(studentCode).getStudentId());
+                            mapStudent.put(studentCode, student);
+                            if(!mapScore.containsKey(studentCode)){
+                                mapScore.put(studentCode,new ArrayList<>());
                             }
-                            else {
-                                studentService.createStudent(student);
-                            }
+
                             if (rows<0||this.listSubjectsName.size()==0) continue;
                             if (rows>this.listSubjectsName.size()) continue;
                             if (rows==this.listSubjectsName.size()) rows--;
@@ -750,11 +757,13 @@ public class ScoreController {
                                     }
                                 }
                             }
-                            Subject subject = Subject.builder()
-                                    .subjectName(this.listSubjectsName.get(rows))
-                                    .id(subjectService.findSubjectByName(this.listSubjectsName.get(rows)).getId())
-                                    .build();
-//
+                            String subjectName = this.listSubjectsName.get(rows);
+                            if (!mapSubject.containsKey(subjectName)){
+                                mapSubject.put(subjectName, subjectService.findBySubjectName(subjectName));
+                            }
+
+                            Subject subject = mapSubject.get(subjectName);
+
                             Score score = Score.builder()
                                     .scoreFirst(scoreFirst)
                                     .scoreFinal(scoreFinal)
@@ -765,40 +774,21 @@ public class ScoreController {
                                     .subject(subject)
                                     .semester(semester)
                                     .build();
-                            scoreService.createScore(score);
-                                System.out.println(score);
+                            mapScore.get(studentCode).add(score);
 
-//                            graphs.add(Graph.builder()
-//                                    .scoreFirst(scoreFirst)
-//                                    .scoreFinal(scoreFinal)
-//                                    .scoreText(scoreText)
-//                                    .scoreSecond(scoreSecond)
-//                                    .scoreOverall(scoreOverRall)
-//                                    .student(student)
-//                                    .subject(subject)
-//                                    .semester(semester)
-//                                    .build());
-//                            Graph graph = Graph.builder()
-//                                    .scoreFirst(scoreFirst)
-//                                    .scoreFinal(scoreFinal)
-//                                    .scoreText(scoreText)
-//                                    .scoreSecond(scoreSecond)
-//                                    .scoreOverall(scoreOverRall)
-//                                    .student(student)
-//                                    .subject(subject)
-//                                    .semester(semester)
-//                                    .build();
-//                            graphService.createScore(graph);
                         }
                     }
                 }
             }
             previousLine = line;
         }
-//        if (graphs.size()>0){
-//            this.graphService.createListScore(graphs);
-//        }
+        System.out.println("Finish startFor 2 "+new Date().getTime());
+//        this.scoreService.saveData(mapScore, mapStudent);
+        System.out.println("Finish saveData 2 "+new Date().getTime());
         pdfDocument.close();
+        // clear cache tu component Warning
+        this.fileUploadService.uploadFile(file, Long.valueOf(userId));
+        ScoreService.cache.clear();
         return ResponseEntity.ok(
                 StatusResponse.builder()
                         .status("200")
