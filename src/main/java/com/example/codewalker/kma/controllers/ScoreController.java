@@ -379,12 +379,9 @@ public class ScoreController {
         errors.add("N25");
         errors.add("N100");
         errors.add("TKD");
-<<<<<<< HEAD
         System.out.println("Start PDDocument 1 "+new Date().getTime());
-=======
         this.listSubjectsName.clear();
 
->>>>>>> c1ae0bbdcbae8a22d08a6c642e452409a238cf7e
         PDDocument pdfDocument = PDDocument.load(file.getInputStream());
         System.out.println(pdfDocument.getPages().getCount());
         System.out.println("Start PDDocument 2 "+new Date().getTime());
