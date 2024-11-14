@@ -189,7 +189,7 @@ public class ScoreController {
                         }
                         String data[] = secondWord.split(" ");
 
-                        if (data[0].equals("0")) continue;
+//                        if (data[0].equals("0")) continue;
 //                        if (data.length<8) continue;
                         String studentCode = data[1];
                         String studentName = "";
@@ -205,13 +205,19 @@ public class ScoreController {
                             }
                         }
                         boolean checkFailedStudent = false;
+//                        System.out.println(line);
                         if (data.length>=mark+6){
                             for (int i=mark+1;i<data.length;i++){
                                 if(data[i].contains("DC")
                                 || data[i].equalsIgnoreCase("đình")
                                 || data[i].equalsIgnoreCase("chỉ")
                                 || data[i].equalsIgnoreCase("n100")
-                                || data[i].equalsIgnoreCase("n25"))
+                                || data[i].equalsIgnoreCase("n25")
+                                || data[i].equalsIgnoreCase("tkd")
+                                        || data[i].equalsIgnoreCase("thi")
+                                        || data[i].equalsIgnoreCase("v")
+                                        || data[i].equalsIgnoreCase("k")
+                                )
                                 {
                                     checkFailedStudent = true;
                                     break;
@@ -219,14 +225,14 @@ public class ScoreController {
                             }
                         }
                         if (data.length<mark+6||checkFailedStudent){
-                            String[] newData = new String[mark+6];
+                            String[] newData = new String[mark+10];
 
                             System.arraycopy(data, 0, newData, 0, data.length);
                             data = newData;
                             for (int i=mark+1;i<data.length;i++){
                                 data[i] = "0";
                             }
-                            data[data.length-1]="F";
+                            data[mark+5]="F";
                         }
                         int cnt = 0;
                         boolean checkError = false;
@@ -252,12 +258,18 @@ public class ScoreController {
                         Float scoreOverRall = 0F;
                         String scoreText = "";
                         if (cnt == 4) {
+                            for (int i = mark+1; i < data.length; i++) {
+                                if (data[i].contains(",")) {
+                                    data[i] = data[i].replace(',', '.');
+                                }
+                            }
                             scoreFirst = Float.parseFloat(data[mark+1]);
                             scoreSecond = Float.parseFloat(data[mark+2]);
                             scoreFinal = Float.parseFloat(data[mark+3]);
                             scoreOverRall = Float.parseFloat(data[mark+4]);
-                            scoreText = data[data.length-1];
-                            String[] invalidScores = {"A", "A+", "B+", "C+", "D+", "D", "B", "C", "F"};
+                            scoreText = data[mark+5];
+                            String[] invalidScores = {"A", "A+", "B+", "C+", "D+", "D", "B", "C", "F",
+                                    "a", "a+", "b+", "c+", "d+", "d", "b", "c", "f"};
                             if (!Arrays.asList(invalidScores).contains(scoreText.toUpperCase())) continue;
                         } else continue;
                         if (scoreFirst>=0&&scoreSecond>=0&&scoreFinal>=0&&scoreOverRall>=0) {
@@ -674,8 +686,8 @@ public class ScoreController {
                             rows++;
                         }
                         String data[] = secondWord.split(" ");
-                        if (data[0].equals("0")) continue;
-                        if (data.length<8) continue;
+//                        if (data[0].equals("0")) continue;
+//                        if (data.length<8) continue;
                         String studentCode = data[1];
                         String studentName = "";
                         int mark = 4;
@@ -689,6 +701,36 @@ public class ScoreController {
                                 break;
                             }
                         }
+                        boolean checkFailedStudent = false;
+                        System.out.println(line);
+                        if (data.length>=mark+6){
+                            for (int i=mark+1;i<data.length;i++){
+                                if(data[i].contains("DC")
+                                        || data[i].equalsIgnoreCase("đình")
+                                        || data[i].equalsIgnoreCase("chỉ")
+                                        || data[i].equalsIgnoreCase("n100")
+                                        || data[i].equalsIgnoreCase("n25")
+                                        || data[i].equalsIgnoreCase("tkd")
+                                        || data[i].equalsIgnoreCase("thi")
+                                        || data[i].equalsIgnoreCase("v")
+                                        || data[i].equalsIgnoreCase("k")
+                                )
+                                {
+                                    checkFailedStudent = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (data.length<mark+6||checkFailedStudent){
+                            String[] newData = new String[mark+10];
+
+                            System.arraycopy(data, 0, newData, 0, data.length);
+                            data = newData;
+                            for (int i=mark+1;i<data.length;i++){
+                                data[i] = "0";
+                            }
+                            data[mark+5]="F";
+                        }
                         int cnt = 0;
                         boolean checkError = false;
                         String studentClass = data[mark];
@@ -698,7 +740,8 @@ public class ScoreController {
                                 cnt++;
                                 if (cnt==4) break;
                             } else {
-                                checkError=true;
+//                                checkError=true;
+                                cnt = 4;
                                 break;
                             }
                         }
@@ -712,12 +755,18 @@ public class ScoreController {
                         Float scoreOverRall = 0F;
                         String scoreText = "";
                         if (cnt == 4) {
+                            for (int i = mark+1; i < data.length; i++) {
+                                if (data[i].contains(",")) {
+                                    data[i] = data[i].replace(',', '.');
+                                }
+                            }
                             scoreFirst = Float.parseFloat(data[mark+1]);
                             scoreSecond = Float.parseFloat(data[mark+2]);
                             scoreFinal = Float.parseFloat(data[mark+3]);
                             scoreOverRall = Float.parseFloat(data[mark+4]);
-                            scoreText = data[data.length-1];
-                            String[] invalidScores = {"A", "A+", "B+", "C+", "D+", "D", "B", "C", "F"};
+                            scoreText = data[mark+5];
+                            String[] invalidScores = {"A", "A+", "B+", "C+", "D+", "D", "B", "C", "F",
+                                                    "a", "a+", "b+", "c+", "d+", "d", "b", "c", "f"};
                             if (!Arrays.asList(invalidScores).contains(scoreText.toUpperCase())) continue;
                         } else continue;
                         if (scoreFirst>=0&&scoreSecond>=0&&scoreFinal>=0&&scoreOverRall>=0) {
@@ -773,7 +822,7 @@ public class ScoreController {
             previousLine = line;
         }
         System.out.println("Finish startFor 2 "+new Date().getTime());
-//        this.scoreService.saveData(mapScore, mapStudent);
+        this.scoreService.saveData(mapScore, mapStudent);
         System.out.println("Finish saveData 2 "+new Date().getTime());
         pdfDocument.close();
         // clear cache tu component Warning
