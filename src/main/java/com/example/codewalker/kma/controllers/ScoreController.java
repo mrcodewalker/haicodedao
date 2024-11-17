@@ -341,7 +341,7 @@ public class ScoreController {
             previousLine = line;
         }
         System.out.println("Finish startFor 2 "+new Date().getTime());
-        this.scoreService.saveData(mapScore, mapStudent);
+//        this.scoreService.saveData(mapScore, mapStudent);
         System.out.println("Finish saveData 2 "+new Date().getTime());
         // clear cache tu component Warning
         this.fileUploadService.uploadFile(file, Long.valueOf(userId));
@@ -829,7 +829,7 @@ public class ScoreController {
             previousLine = line;
         }
         System.out.println("Finish startFor 2 "+new Date().getTime());
-        this.scoreService.saveData(mapScore, mapStudent);
+//        this.scoreService.saveData(mapScore, mapStudent);
         System.out.println("Finish saveData 2 "+new Date().getTime());
         pdfDocument.close();
         // clear cache tu component Warning

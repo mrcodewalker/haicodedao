@@ -28,4 +28,6 @@ public class ScoreResponse {
 
     @JsonProperty("score_over_rall")
     private Float scoreOverall;
+    @JsonProperty("subject_credit")
+    private Long subjectCredit;
 }

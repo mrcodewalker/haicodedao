@@ -676,6 +676,7 @@ public class RankingService implements IRankingService {
                     .scoreFirst(clone.getScoreFirst())
                     .scoreText(clone.getScoreText())
                     .subjectName(clone.getSubject().getSubjectName())
+                    .subjectCredit(clone.getSubject().getSubjectCredits())
                     .build();
             data.add(scoreResponse);
         }
