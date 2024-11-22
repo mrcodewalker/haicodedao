@@ -207,7 +207,7 @@ public class ScoreController {
                             }
                         }
                         boolean checkFailedStudent = false;
-//                        System.out.println(line);
+                        System.out.println(line);
                         if (data.length>=mark+6){
                             for (int i=mark+1;i<data.length;i++){
                                 if(data[i].contains("DC")
@@ -219,6 +219,9 @@ public class ScoreController {
                                         || data[i].equalsIgnoreCase("thi")
                                         || data[i].equalsIgnoreCase("v")
                                         || data[i].equalsIgnoreCase("k")
+                                        || data[i].equalsIgnoreCase("kld")
+                                        || data[i].equalsIgnoreCase("nghỉ")
+                                        || data[i].equalsIgnoreCase("quá")
                                 )
                                 {
                                     checkFailedStudent = true;
@@ -341,7 +344,7 @@ public class ScoreController {
             previousLine = line;
         }
         System.out.println("Finish startFor 2 "+new Date().getTime());
-//        this.scoreService.saveData(mapScore, mapStudent);
+        this.scoreService.saveData(mapScore, mapStudent);
         System.out.println("Finish saveData 2 "+new Date().getTime());
         // clear cache tu component Warning
         this.fileUploadService.uploadFile(file, Long.valueOf(userId));
@@ -666,7 +669,7 @@ public class ScoreController {
 //        }
 //        System.out.println(this.specialCase);
         boolean passedSubjects = false;
-        collectAllSubjectsFake(file);
+        collectSubjectsNew(file);
         Map<String,Student> mapStudent = new HashMap<>();
         Map<String,List<Score>> mapScore = new HashMap<>();
         Map<String,Subject> mapSubject = new HashMap<>();
@@ -695,10 +698,18 @@ public class ScoreController {
                         String data[] = secondWord.split(" ");
 //                        if (data[0].equals("0")) continue;
 //                        if (data.length<8) continue;
-                        String studentCode = data[1];
+                        String studentCode = "";
+                        int markCode = 0;
+                        if (data[0].contains("DT")||data[0].contains("CT")||data[0].contains("AT")){
+                            studentCode = data[0];
+                            markCode = 1;
+                        } else {
+                            studentCode = data[1];
+                            markCode=2;
+                        }
                         String studentName = "";
                         int mark = 4;
-                        for (int i=2;i<data.length;i++){
+                        for (int i=markCode;i<data.length;i++){
                             if (data[i].contains("CT")||data[i].contains("AT")||data[i].contains("DT")){
                                 mark = i ;
                                 for (int j=2;j<i;j++){
@@ -721,6 +732,10 @@ public class ScoreController {
                                         || data[i].equalsIgnoreCase("thi")
                                         || data[i].equalsIgnoreCase("v")
                                         || data[i].equalsIgnoreCase("k")
+                                        || data[i].equalsIgnoreCase("nghỉ")
+                                        || data[i].equalsIgnoreCase("quá")
+                                        || data[i].equalsIgnoreCase("25%")
+                                        || data[i].equalsIgnoreCase("kld")
                                 )
                                 {
                                     checkFailedStudent = true;
@@ -829,7 +844,7 @@ public class ScoreController {
             previousLine = line;
         }
         System.out.println("Finish startFor 2 "+new Date().getTime());
-//        this.scoreService.saveData(mapScore, mapStudent);
+        this.scoreService.saveData(mapScore, mapStudent);
         System.out.println("Finish saveData 2 "+new Date().getTime());
         pdfDocument.close();
         // clear cache tu component Warning
@@ -1024,6 +1039,62 @@ public class ScoreController {
 //                cnt++;
 //            }
         }
+    }
+    public void collectSubjectsNew(MultipartFile file) throws Exception{
+        Map<String, String> list = new LinkedHashMap<>();
+
+        PDDocument pdfDocument = PDDocument.load(file.getInputStream());
+        System.out.println(pdfDocument.getPages().getCount());
+
+        PDFTextStripper pdfTextStripper = new PDFTextStripper();
+
+        pdfTextStripper.setStartPage(0);
+
+        PDPage firstPage = pdfDocument.getPage(0);
+
+        String docText = pdfTextStripper.getText(pdfDocument);
+
+        Set<String> idSubjects = new HashSet<>();
+// Tách văn bản thành các dòng
+        String[] lines = docText.split("\\r?\\n");
+        int rows = 0;
+        int count = 0;
+        List<Subject> subjectList = subjectService.findAll();
+        List<String> subjectsName = new ArrayList<>();
+        for (Subject subject : subjectList) {
+            String subjectName = subject.getSubjectName();
+            subjectsName.add(subjectName.trim());
+        }
+        Set<String> collectData = new LinkedHashSet<>();
+        boolean passedSubjects = false;
+        for (String line : lines) {
+            int spaceIndex = line.indexOf("Môn thi");
+            int checkValid = 0;
+            String subjectName = "";
+            if (spaceIndex!=-1){
+                subjectName = line.substring(spaceIndex+8).trim();
+                for (String subject: subjectsName){
+                    if (Normalizer.normalize(subject.trim(), Normalizer.Form.NFD).replaceAll("\\p{M}", "").equalsIgnoreCase(
+                            Normalizer.normalize(subjectName.trim(), Normalizer.Form.NFD).replaceAll("\\p{M}", ""))){
+                        collectData.add(subject);
+                        checkValid++;
+                    }
+                }
+                if(checkValid==0){
+                    Subject subject = Subject.builder()
+                            .subjectCredits(2L)
+                            .subjectName(subjectName)
+                            .build();
+                    Subject newSubject = this.subjectService.createSubject(
+                            subject
+                    );
+                    collectData.add(newSubject.getSubjectName());
+                    subjectsName.add(newSubject.getSubjectName());
+                }
+            } else continue;
+        }
+        this.listSubjectsName = collectData.stream().toList();
+        System.out.println(this.listSubjectsName);
     }
     @PostMapping("/score/semester")
     public ResponseEntity<?> SaveSemester(

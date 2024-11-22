@@ -215,7 +215,7 @@ public class SemesterRankingService implements ISemesterRankingService{
         for (SemesterRankingResponse resp : responses) {
             if (resp.getStudentCode().equals(studentCode)) {
                 // Di chuyển sinh viên có studentCode trùng lên đầu danh sách
-                responses.add(0, responses.remove(responses.indexOf(resp))); // Di chuyển sinh viên vào đầu danh sách
+                responses.add(0, resp); // Di chuyển sinh viên vào đầu danh sách
                 found = true;  // Đánh dấu là đã tìm thấy
                 break;  // Thoát khỏi vòng lặp nếu đã tìm thấy
             }

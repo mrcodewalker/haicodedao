@@ -39,7 +39,6 @@ public class RankingService implements IRankingService {
     public Long setTimeOut = 2*1000L;
 
     @Override
-    @Transactional
     public void  updateGPA() throws Exception {
         ScoreService.cache.clear();
         List<Student> studentList = studentRepository.findAll();
@@ -60,6 +59,7 @@ public class RankingService implements IRankingService {
             if (scoreList.size()>0) {
                 for (Score score : scoreList) {
                     if (score.getSubject().getSubjectName().contains("Giáo dục thể chất")) {
+                        subjects++;
                         continue;
                     }
 
@@ -217,7 +217,6 @@ public class RankingService implements IRankingService {
     @Override
     @Transactional
     public StatusResponse updateRankings() throws Exception {
-        updateGPA();
         updateBlockRanking();
         updateClassRanking();
         updateBlockDetailRanking();
@@ -231,7 +230,6 @@ public class RankingService implements IRankingService {
     }
 
 
-    @Transactional
     public void updateBlockRanking() throws Exception {
         List<Student> studentList = this.studentRepository.findAll();
         this.blockRankingRepository.deleteAllRecords();
@@ -265,7 +263,6 @@ public class RankingService implements IRankingService {
         }
         this.blockRankingRepository.saveAll(result);
     }
-    @Transactional
     public void updateSemesterRanking() {
         this.semesterRankingRepository.deleteAllRecords();
         this.semesterRankingRepository.resetAutoIncrement();
@@ -283,14 +280,17 @@ public class RankingService implements IRankingService {
         List<SemesterRanking> newRankings = new ArrayList<>();
 
         for (Student student : studentList) {
+            System.out.println(student);
             float gpa = 0f;
             int count = 0;
             int subjects = 0;
 
             List<Semester> scoreList = scoresByStudent.get(student.getStudentCode());
             if (scoreList != null) {
+                System.out.println(scoreList);
                 for (Semester score : scoreList) {
                     if (score.getSubject().getSubjectName().contains("Giáo dục thể chất")) {
+                        subjects++;
                         continue;
                     }
 
@@ -323,6 +323,9 @@ public class RankingService implements IRankingService {
                         case "D":
                             scoreValue = 1.0f;
                             break;
+                        case "F":
+                            scoreValue = 0.0f;
+                            break;
                         default:
                             continue;
                     }
@@ -350,7 +353,7 @@ public class RankingService implements IRankingService {
             if (subjects<=3){
                 continue;
             }
-            if (count != 0) {
+            if (count != 0 && gpa != 0) {
                 float roundedGPA = Math.round((gpa / count) * 100) / 100f;
                 float roundedAsiaGPA = Math.round((gpa / count) * 2.5f * 100) / 100f;
                 newRankings.add(SemesterRanking.builder()
@@ -364,11 +367,11 @@ public class RankingService implements IRankingService {
 
         newRankings.sort(Comparator.comparing(SemesterRanking::getAsiaGpa).reversed());
         for (int i = 0; i < newRankings.size(); i++) {
+            newRankings.get(i).setId((long) i+1);
             newRankings.get(i).setRanking((long) (i + 1));
         }
         semesterRankingRepository.saveAll(newRankings);
     }
-    @Transactional
     public void updateClassRanking() throws Exception{
         List<String> studentList = this.studentRepository.findDistinctClass();
         this.classRankingRepository.deleteAllRecords();
@@ -390,7 +393,6 @@ public class RankingService implements IRankingService {
         }
         this.classRankingRepository.saveAll(result);
     }
-    @Transactional
     public void updateBlockDetailRanking() throws Exception{
         this.blockDetailRankingRepository.deleteAllRecords();
         this.blockDetailRankingRepository.resetAutoIncrement();
@@ -413,7 +415,6 @@ public class RankingService implements IRankingService {
         }
         this.blockDetailRankingRepository.saveAll(result);
     }
-    @Transactional
     public void updateScholarShip() {
         this.scholarshipRepository.deleteAllRecords();
         this.scholarshipRepository.resetAutoIncrement();
@@ -448,7 +449,6 @@ public class RankingService implements IRankingService {
         }
         this.scholarshipRepository.saveAll(result);
     }
-    @Transactional
     public void updateMajorRanking() throws Exception{
         List<String> studentList = this.studentRepository.findDistinctMajor();
         this.majorRankingRepository.deleteAllRecords();
@@ -473,7 +473,6 @@ public class RankingService implements IRankingService {
         }
         this.majorRankingRepository.saveAll(result);
     }
-    @Transactional
     public void updateSemesterTable() {
         this.semesterRepository.deleteAllScores();
         this.semesterRepository.resetAutoIncrement();
