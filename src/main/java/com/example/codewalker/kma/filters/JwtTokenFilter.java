@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.internal.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,7 +26,7 @@ import java.util.List;
 public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
-    public JwtTokenFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
+    public JwtTokenFilter(@Lazy JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
@@ -88,6 +89,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/users", apiPrefix),"OPTIONS"),
                 Pair.of(String.format("%s/users/register", apiPrefix),"POST"),
                 Pair.of(String.format("%s/users/check/data", apiPrefix),"POST"),
+                Pair.of(String.format("%s/excel/upload", apiPrefix),"POST"),
+                Pair.of(String.format("%s/excel/toggle", apiPrefix),"POST"),
+                Pair.of(String.format("%s/excel", apiPrefix),"POST"),
+                Pair.of(String.format("%s/excel/student", apiPrefix),"POST"),
+                Pair.of(String.format("%s/excel", apiPrefix),"GET"),
+                Pair.of(String.format("%s/excel", apiPrefix),"PUT"),
+                Pair.of(String.format("%s/excel/export", apiPrefix),"POST"),
+                Pair.of(String.format("%s/excel/filter", apiPrefix),"POST"),
                 Pair.of(String.format("%s/users/login", apiPrefix),"POST"),
                 Pair.of(String.format("%s/oauth2", apiPrefix),"GET"),
                 Pair.of(String.format("%s/oauth2", apiPrefix),"POST"),

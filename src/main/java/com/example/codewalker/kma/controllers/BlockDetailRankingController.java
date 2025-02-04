@@ -10,4 +10,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("api/v1/block_detail_ranking")
 @CrossOrigin(origins = "https://kma-legend.onrender.com")
 public class BlockDetailRankingController {
+
 }

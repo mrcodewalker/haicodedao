@@ -79,6 +79,12 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/v1/calendar/**").permitAll()
                                 .requestMatchers("/api/v1/crawl/**").permitAll()
                                 .requestMatchers("/api/v1/login/**").permitAll()
+                                .requestMatchers("/api/v1/excel/upload").permitAll()
+                                .requestMatchers("/api/v1/excel/toggle").permitAll()
+                                .requestMatchers("/api/v1/excel/student").permitAll()
+                                .requestMatchers("/api/v1/excel/export").permitAll()
+                                .requestMatchers("/api/v1/excel/filter").permitAll()
+                                .requestMatchers("/api/v1/excel/**").permitAll()
                                 .requestMatchers("/api/v1/ranking/auto**").hasRole(Role.ADMIN)
                                 .requestMatchers("/api/v1/ranking/update**").hasRole(Role.ADMIN)
                                 .requestMatchers("/api/v1/ranking/query**").hasRole(Role.ADMIN)
@@ -99,15 +105,10 @@ public class WebSecurityConfig {
                                 .anyRequest().authenticated()
                 ) // Yêu cầu xác thực cho các yêu cầu khác
 //                .csrf(AbstractHttpConfigurer::disable)
-                .oauth2Login(Customizer.withDefaults())
                 .formLogin(Customizer.withDefaults());
 //                .sessionManagement(sessionManagement ->
 //                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Không tạo session
 //                );
-        http.oauth2Login(oauth2 ->
-                oauth2
-                        .successHandler(authenticationSuccessHandler())
-        );
         http.cors(Customizer.withDefaults());
 //                .addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class); // Thêm filter tùy chỉnh của bạn
         http.cors(new Customizer<CorsConfigurer<HttpSecurity>>() {
@@ -132,255 +133,6 @@ public class WebSecurityConfig {
         };
     }
 
-    @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return (request, response, authentication) -> {
-            Long id = 0L;
-            String type = "";
-            User temp = new User();
-            OAuth2AuthenticationToken oauth2Token = (OAuth2AuthenticationToken) authentication;
-            String clientRegistrationId = oauth2Token.getAuthorizedClientRegistrationId();
-
-            if ("google".equals(clientRegistrationId)) {
-                // Xử lý với Google (OidcUser)
-                if (authentication.getPrincipal() instanceof OidcUser) {
-                    OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
-                    String name = oidcUser.getFullName(); // Lấy tên người dùng
-                    String email = oidcUser.getEmail(); // Lấy email người dùng
-                    String picture = oidcUser.getPicture();
-                    type = "google"; // Đặt loại cho Google
-
-
-                    emailService.createUser(EmailDTO.builder()
-                            .email(email)
-                            .name(name)
-                            .picture(picture)
-                            .build());
-                    String username = WebSecurityConfig.convertToUsername(name);
-                    LocalDate today = LocalDate.now();
-
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    String formattedDate = today.format(formatter);
-                    if (this.userRepository.findByEmail(email).isEmpty()) {
-                        try {
-                            do {
-                                int number = random.nextInt(100);
-
-                                username = username + number;
-
-                                // Kiểm tra nếu username đã tồn tại trong cơ sở dữ liệu
-                                if (this.userRepository.findByUsername(username).isEmpty()) {
-                                    // Nếu không tồn tại, thoát khỏi vòng lặp
-                                    break;
-                                }
-                            } while (true);
-                            if (this.userRepository.findByUsername(username).isEmpty()) {
-                                try {
-                                    this.createUser(UserDTO.builder()
-                                            .username(username)
-                                                    .avatar(picture)
-                                            .providerName("Google")
-                                            .email(email)
-                                            .password(formattedDate)
-                                            .build());
-                                    temp = this.userRepository.findByUsername(username).get();
-                                } catch (DataNotFoundException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else {
-                        User user = this.userRepository.findByEmail(email).get();
-                        temp = user;
-                    }
-                } else {
-                    // Nếu không phải OidcUser, xử lý lỗi hoặc thông báo
-                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected user type for Google");
-                    return;
-                }
-            } else
-                if ("facebook".equals(clientRegistrationId)) {
-                // Xử lý với Facebook (OAuth2User)
-                if (authentication.getPrincipal() instanceof OAuth2User) {
-                    OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-                    String name = oauth2User.getAttribute("name"); // Lấy tên người dùng
-                    String email = oauth2User.getAttribute("email"); // Lấy email người dùng
-                    String facebookId = oauth2User.getAttribute("id");
-                    type = "facebook"; // Đặt loại cho Facebook
-
-                    facebookService.createUser(FacebookDTO.builder()
-                            .facebookId(facebookId)
-                            .email(email)
-                            .name(name)
-                            .build());
-
-                    String username = WebSecurityConfig.convertToUsername(name);
-                    LocalDate today = LocalDate.now();
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    String formattedDate = today.format(formatter);
-                    if (this.userRepository.findByEmail(email).isEmpty()) {
-                        try {
-                            do {
-                                int number = random.nextInt(100);
-
-                                username = username + number;
-
-                                // Kiểm tra nếu username đã tồn tại trong cơ sở dữ liệu
-                                if (this.userRepository.findByUsername(username).isEmpty()) {
-                                    // Nếu không tồn tại, thoát khỏi vòng lặp
-                                    break;
-                                }
-                            } while (true);
-                            if (this.userRepository.findByUsername(username).isEmpty()) {
-                                try {
-                                    this.createUser(UserDTO.builder()
-                                            .username(username)
-                                                    .avatar("")
-                                            .providerName("Facebook")
-                                            .email(email)
-                                            .password(formattedDate)
-                                            .build());
-                                    temp = this.userRepository.findByUsername(username).get();
-                                } catch (DataNotFoundException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else {
-                        User user = this.userRepository.findByEmail(email).get();
-                        temp = user;
-                    }
-                } else {
-                    // Nếu không phải OAuth2User, xử lý lỗi hoặc thông báo
-                    response.sendError(HttpServletResponse .SC_INTERNAL_SERVER_ERROR, "Unexpected user type for Facebook");
-                    return;
-                }
-            }
-            if ("github".equals(clientRegistrationId)) {
-                if (authentication.getPrincipal() instanceof OAuth2User) {
-                    OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-                    String login = oauth2User.getAttribute("login"); // Lấy tên người dùng
-                    String email = oauth2User.getAttribute("email");
-                    Object idObject = oauth2User.getAttribute("id");
-                    String idGithub = idObject.toString();
-                    String avatarUrl = oauth2User.getAttribute("avatar_url");
-                    String name = oauth2User.getAttribute("name"); // "Mr.CodeW"// "https://avatars.githubusercontent.com/u/136473311?v=4"
-
-                    type = "github"; // Đặt loại cho Facebook
-                    if (email == null || email.length() < 3) {
-                        email = "";
-                    }
-                    Github github = githubService.createUser(GithubDTO.builder()
-                            .avatarUrl(avatarUrl)
-                            .githubId(idGithub)
-                            .fullname(name)
-                            .username(login)
-                            .email(email)
-                            .build());
-
-                    String username = WebSecurityConfig.convertToUsername(login);
-                    LocalDate today = LocalDate.now();
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    String formattedDate = today.format(formatter);
-                    if (email.contains("@gmail.com")) {
-                        if (this.userRepository.findByEmail(email).isEmpty()) {
-                            try {
-                                do {
-                                    int number = random.nextInt(100);
-
-                                    username = username + number;
-
-                                    // Kiểm tra nếu username đã tồn tại trong cơ sở dữ liệu
-                                    if (this.userRepository.findByUsername(username).isEmpty()) {
-                                        // Nếu không tồn tại, thoát khỏi vòng lặp
-                                        break;
-                                    }
-                                } while (true);
-                                if (this.userRepository.findByUsername(username).isEmpty()) {
-                                    try {
-                                        this.createUser(UserDTO.builder()
-                                                .username(username)
-                                                        .avatar(avatarUrl)
-                                                .providerName("Facebook")
-                                                .email(email)
-                                                .password(formattedDate)
-                                                .build());
-                                        temp = this.userRepository.findByUsername(username).get();
-                                    } catch (DataNotFoundException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                }
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            User user = this.userRepository.findByEmail(email).get();
-                            temp = user;
-                        }
-                    } else {
-                        Optional<User> optionalUser = userRepository.findByGithubId(idGithub);
-                        if (optionalUser.isPresent()){
-                            User user = optionalUser.get();
-                            temp = user;
-                        } else {
-                            try {
-                                do {
-                                    int number = random.nextInt(100);
-
-                                    username = username + number;
-
-                                    if (this.userRepository.findByUsername(username).isEmpty()) {
-                                            break;
-                                        }
-                                    } while (true);
-                                    if (this.userRepository.findByUsername(username).isEmpty()) {
-                                        try {
-                                            this.createUser(UserDTO.builder()
-                                                    .username(username)
-                                                    .providerName("Github")
-                                                            .avatar(avatarUrl)
-                                                            .githubId(idGithub)
-                                                    .email(email)
-                                                    .password(formattedDate)
-                                                    .build());
-                                            temp = this.userRepository.findByUsername(username).get();
-                                        } catch (DataNotFoundException e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
-                        }
-                    }
-                }
-            }
-            // Thực hiện xử lý sau khi đăng nhập thành công, ví dụ: chuyển hướng
-            String token = null;
-            try {
-                token = this.jwtTokenProvider.generateToken(temp);
-            } catch (InvalidParamException e) {
-                throw new RuntimeException(e);
-            }
-            LocalDate today = LocalDate.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            String formattedDate = today.format(formatter);
-            if (passwordEncoder.encode(formattedDate).equals(temp.getPassword())) {
-                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&password=%s&token=%s&userId=%d&type=%s&role=%s",
-                        temp.getUsername(), formattedDate, URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type, temp.getRole().getRoleName());
-                response.sendRedirect(redirectUrl);
-            }
-            else {
-                String redirectUrl = String.format("https://kma-legend.onrender.com/login/forum?username=%s&token=%s&userId=%d&type=%s&role=%s",
-                        temp.getUsername(), URLEncoder.encode(token, StandardCharsets.UTF_8.toString()), temp.getUserId(), type, temp.getRole().getRoleName());
-                response.sendRedirect(redirectUrl);
-            }
-        };
-    }
     public static String convertToUsername(String name) {
         if (name == null || name.isEmpty()) {
             return "";

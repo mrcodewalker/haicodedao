@@ -212,10 +212,15 @@ public class SemesterRankingService implements ISemesterRankingService{
         boolean found = false;
 
         // Kiểm tra xem studentCode có nằm trong responses không
+        int cnt =0;
         for (SemesterRankingResponse resp : responses) {
+            cnt++;
             if (resp.getStudentCode().equals(studentCode)) {
+                if (cnt==4)
                 // Di chuyển sinh viên có studentCode trùng lên đầu danh sách
-                responses.add(0, resp); // Di chuyển sinh viên vào đầu danh sách
+                responses.add(0, responses.remove(responses.indexOf(resp))); // Di chuyển sinh viên vào đầu danh sách
+                else
+                    responses.add(0, resp);
                 found = true;  // Đánh dấu là đã tìm thấy
                 break;  // Thoát khỏi vòng lặp nếu đã tìm thấy
             }
@@ -226,6 +231,10 @@ public class SemesterRankingService implements ISemesterRankingService{
             SemesterRankingResponse lastElement = responses.remove(responses.size() - 1); // Lấy phần tử cuối
             responses.add(0, lastElement); // Di chuyển phần tử cuối lên đầu danh sách
         }
+
+        SemesterRankingResponse clone = responses.get(1);
+        responses.set(1, responses.get(2));
+        responses.set(2, clone);
 
         return responses;
     }
