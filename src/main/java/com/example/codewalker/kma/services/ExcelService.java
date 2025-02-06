@@ -49,7 +49,7 @@ public class ExcelService {
         this.repository.saveAll(list);
     }
     public List<CourseScheduleDetail> findAllData(String semester){
-        return this.repository.findGroupedByCourseName(semester);
+        return this.repository.findByCourseName(semester);
     }
     public void addStudent(ListDataDTO listDataDTO){
         List<DataInputDTO> dtos = listDataDTO.getList();
